@@ -401,35 +401,52 @@ async function whoopLoad() {
   _whoopData = data;
 
   const { recovery, cycle, sleep, history } = data;
-  const strain = cycle?.score?.strain?.toFixed(1);
-  const slp    = sleep?.score?.sleep_performance_percentage;
 
-  let scoreText, color, note, dateStr, metrics;
+  const strain  = cycle?.score?.strain;
+  const avgHR   = cycle?.score?.average_heart_rate;
+  const maxHR   = cycle?.score?.max_heart_rate;
+  const kcal    = cycle?.score?.kilojoule ? Math.round(cycle.score.kilojoule / 4.184) : null;
+  const slp     = sleep?.score?.sleep_performance_percentage;
+
+  let scoreText, scoreSuffix, color, note, dateStr, metrics;
 
   if (recovery?.score) {
     const score = Math.round(recovery.score.recovery_score);
     const hrv   = Math.round(recovery.score.hrv_rmssd_milli);
     const rhr   = Math.round(recovery.score.resting_heart_rate);
-    color     = score >= 67 ? '#4ade80' : score >= 34 ? '#facc15' : '#f87171';
-    note      = score >= 67 ? 'Good to train hard today.' : score < 34 ? 'Consider a lighter session or rest.' : 'Moderate effort recommended.';
-    scoreText = String(score);
-    dateStr   = new Date(recovery.created_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-    metrics   = `<span>HRV ${hrv}ms</span><span>RHR ${rhr}bpm</span>` +
-                (strain ? `<span>Strain ${strain}</span>` : '') +
-                (slp    ? `<span>Sleep ${Math.round(slp)}%</span>` : '');
+    color       = score >= 67 ? '#4ade80' : score >= 34 ? '#facc15' : '#f87171';
+    note        = score >= 67 ? 'Good to train hard today.' : score < 34 ? 'Consider a lighter session or rest.' : 'Moderate effort recommended.';
+    scoreText   = String(score);
+    scoreSuffix = '%';
+    dateStr     = new Date(recovery.created_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    metrics     = `<span>HRV ${hrv}ms</span><span>RHR ${rhr}bpm</span>` +
+                  (strain != null ? `<span>Strain ${strain.toFixed(1)}</span>` : '') +
+                  (slp != null    ? `<span>Sleep ${Math.round(slp)}%</span>`  : '');
+  } else if (cycle?.score) {
+    // No recovery yet — show cycle metrics as main display
+    const strainColor = strain >= 14 ? '#f87171' : strain >= 10 ? '#facc15' : '#4ade80';
+    color       = strainColor;
+    scoreText   = strain != null ? strain.toFixed(1) : '–';
+    scoreSuffix = 'strain';
+    dateStr     = new Date(cycle.created_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    note        = 'Recovery score needs overnight sleep data. Showing today\'s cycle.';
+    const bits  = [];
+    if (avgHR != null) bits.push(`<span>Avg HR ${avgHR}bpm</span>`);
+    if (maxHR != null) bits.push(`<span>Max HR ${maxHR}bpm</span>`);
+    if (kcal  != null) bits.push(`<span>${kcal} kcal</span>`);
+    metrics     = bits.join('');
   } else {
-    color     = '#94a3b8';
-    note      = 'Recovery not yet scored — check back after your next sleep.';
-    scoreText = '–';
-    dateStr   = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-    const bits = [];
-    if (strain) bits.push(`<span>Strain ${strain}</span>`);
-    if (slp)    bits.push(`<span>Sleep ${Math.round(slp)}%</span>`);
-    metrics = bits.join('') || '<span>Wear Whoop overnight for full metrics</span>';
+    color       = '#94a3b8';
+    scoreText   = '–';
+    scoreSuffix = '';
+    dateStr     = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    note        = 'No data yet. Wear your Whoop today.';
+    metrics     = '';
   }
 
   document.getElementById('whoop-score').textContent        = scoreText;
   document.getElementById('whoop-score').style.color        = color;
+  document.getElementById('whoop-score-label').textContent  = scoreSuffix;
   document.getElementById('whoop-date').textContent         = dateStr;
   document.getElementById('whoop-metrics').innerHTML        = metrics;
   document.getElementById('whoop-note').textContent         = note;
@@ -437,18 +454,25 @@ async function whoopLoad() {
   document.getElementById('whoop-card').style.display       = 'block';
   document.getElementById('whoop-connect-wrap').style.display = 'none';
 
-  // Sparkline graphs
+  // Sparklines — use whatever data is available
   if (history) {
-    const recovVals  = [...(history.recoveries || [])].reverse().map(r => r.score?.recovery_score).filter(v => v != null);
-    const hrvVals    = [...(history.recoveries || [])].reverse().map(r => r.score?.hrv_rmssd_milli).filter(v => v != null);
-    const strainVals = [...(history.cycles     || [])].reverse().map(c => c.score?.strain).filter(v => v != null);
-    const sleepVals  = [...(history.sleeps     || [])].reverse().map(s => s.score?.sleep_performance_percentage).filter(v => v != null);
+    const cycles     = [...(history.cycles     || [])].reverse();
+    const recoveries = [...(history.recoveries || [])].reverse();
+    const sleeps     = [...(history.sleeps     || [])].reverse();
 
-    document.getElementById('whoop-graphs').innerHTML =
-      renderSparkline(recovVals,  color,     'Recovery', '%') +
-      renderSparkline(hrvVals,    '#818cf8', 'HRV',      'ms') +
-      renderSparkline(strainVals, '#fb923c', 'Strain',   '') +
-      renderSparkline(sleepVals,  '#34d399', 'Sleep',    '%');
+    const strainVals = cycles.map(c => c.score?.strain).filter(v => v != null);
+    const avgHRVals  = cycles.map(c => c.score?.average_heart_rate).filter(v => v != null);
+    const recovVals  = recoveries.map(r => r.score?.recovery_score).filter(v => v != null);
+    const sleepVals  = sleeps.map(s => s.score?.sleep_performance_percentage).filter(v => v != null);
+
+    const graphs = [
+      renderSparkline(strainVals, '#fb923c', 'Strain',   ''),
+      renderSparkline(avgHRVals,  '#f472b6', 'Avg HR',   ''),
+      renderSparkline(recovVals,  '#4ade80', 'Recovery', '%'),
+      renderSparkline(sleepVals,  '#34d399', 'Sleep',    '%'),
+    ].filter(Boolean).join('');
+
+    document.getElementById('whoop-graphs').innerHTML = graphs;
   }
 }
 
