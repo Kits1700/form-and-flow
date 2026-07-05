@@ -310,28 +310,51 @@ function calShift(dir) {
 }
 
 function renderCalendar() {
-  const log       = JSON.parse(localStorage.getItem('ff_log') || '{}');
-  const todayStr  = today();
-  const firstDay  = new Date(_calYear, _calMonth, 1);
-  const daysInMo  = new Date(_calYear, _calMonth + 1, 0).getDate();
-  const startDow  = (firstDay.getDay() + 6) % 7; // Monday = 0
+  const log      = JSON.parse(localStorage.getItem('ff_log') || '{}');
+  const todayStr = today();
+  const firstDay = new Date(_calYear, _calMonth, 1);
+  const daysInMo = new Date(_calYear, _calMonth + 1, 0).getDate();
+  const startDow = (firstDay.getDay() + 6) % 7;
 
   document.getElementById('cal-month-label').textContent = `${MONTHS[_calMonth]} ${_calYear}`;
 
-  let html = '';
-  for (let i = 0; i < startDow; i++) html += '<div class="cal-cell cal-cell--empty"></div>';
+  // Grid — dots only
+  let grid = '';
+  for (let i = 0; i < startDow; i++) grid += '<div class="cal-cell cal-cell--empty"></div>';
   for (let d = 1; d <= daysInMo; d++) {
-    const ds     = `${_calYear}-${String(_calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const logged    = log[ds];
-    const loggedId  = logged ? (typeof logged === 'object' ? logged.id   : logged) : null;
-    const loggedTip = logged ? (typeof logged === 'object' ? `${logged.name}${logged.muscles?.length ? ' · ' + logged.muscles.join(', ') : ''}` : logged) : '';
-    const cls       = ['cal-cell', ds === todayStr ? 'cal-today' : '', loggedId ? 'cal-logged' : ''].filter(Boolean).join(' ');
-    html += `<div class="${cls}"${loggedTip ? ` title="${loggedTip}"` : ''}>
+    const ds      = `${_calYear}-${String(_calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const logged  = log[ds];
+    const hasLog  = !!logged;
+    const isToday = ds === todayStr;
+    const cls     = ['cal-cell', isToday ? 'cal-today' : '', hasLog ? 'cal-logged' : ''].filter(Boolean).join(' ');
+    grid += `<div class="${cls}">
       <span class="cal-day-num">${d}</span>
-      ${loggedId ? `<span class="cal-badge cal-badge--${loggedId}">${loggedId === 'AI' ? '✓' : loggedId}</span>` : ''}
+      ${hasLog ? '<span class="cal-dot"></span>' : ''}
     </div>`;
   }
-  document.getElementById('cal-grid').innerHTML = html;
+  document.getElementById('cal-grid').innerHTML = grid;
+
+  // Activity feed — logged days in this month, newest first
+  const entries = [];
+  for (let d = daysInMo; d >= 1; d--) {
+    const ds     = `${_calYear}-${String(_calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const logged = log[ds];
+    if (!logged) continue;
+    const info    = typeof logged === 'object' ? logged : { id: logged, name: logged, focus: '', muscles: [] };
+    const date    = new Date(_calYear, _calMonth, d);
+    const isToday = ds === todayStr;
+    const dayStr  = isToday ? 'Today' : date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
+    const muscles = info.muscles?.length ? info.muscles.join(' · ') : info.focus || '';
+    entries.push(`<div class="cal-entry">
+      <div class="cal-entry-date">${dayStr}</div>
+      <div class="cal-entry-name">${info.name || info.id}</div>
+      ${muscles ? `<div class="cal-entry-muscles">${muscles}</div>` : ''}
+    </div>`);
+  }
+
+  document.getElementById('cal-feed').innerHTML = entries.length
+    ? entries.join('')
+    : '<div class="cal-feed-empty">No workouts logged this month.</div>';
 }
 
 // ── Whoop ─────────────────────────────────────────────────────
