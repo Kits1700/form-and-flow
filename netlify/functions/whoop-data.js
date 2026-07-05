@@ -11,10 +11,10 @@ exports.handler = async (event) => {
     const headers = { Authorization: `Bearer ${token}` };
 
     const [recoveryRes, cycleRes, sleepRes, workoutRes] = await Promise.all([
-      fetch('https://api.prod.whoop.com/developer/v1/recovery/?limit=7', { headers }),
-      fetch('https://api.prod.whoop.com/developer/v1/cycle/?limit=7', { headers }),
-      fetch('https://api.prod.whoop.com/developer/v1/sleep/?limit=7', { headers }),
-      fetch('https://api.prod.whoop.com/developer/v1/workout/?limit=10', { headers }),
+      fetch('https://api.prod.whoop.com/developer/v1/recovery/?limit=30', { headers }),
+      fetch('https://api.prod.whoop.com/developer/v1/cycle/?limit=30', { headers }),
+      fetch('https://api.prod.whoop.com/developer/v1/sleep/?limit=30', { headers }),
+      fetch('https://api.prod.whoop.com/developer/v1/workout/?limit=30', { headers }),
     ]);
 
     const [recoveryData, cycleData, sleepData, workoutData] = await Promise.all([
@@ -38,6 +38,15 @@ exports.handler = async (event) => {
         sleep:    sleeps[0]     ?? null,
         workouts,
         history: { recoveries, cycles, sleeps },
+        _debug: {
+          recoveryStatus: recoveryRes.status,
+          cycleStatus:    cycleRes.status,
+          sleepStatus:    sleepRes.status,
+          workoutStatus:  workoutRes.status,
+          recoveryCounts: recoveries.length,
+          cycleCounts:    cycles.length,
+          sleepCounts:    sleeps.length,
+        },
       }),
     };
   } catch (err) {

@@ -367,26 +367,75 @@ async function whoopGetToken() {
   return token;
 }
 
-function renderSparkline(values, color, label, unit) {
-  if (!values || values.length < 2) return '';
-  const W = 70, H = 36, pad = 4;
-  const min = Math.min(...values), max = Math.max(...values);
-  const range = max - min || 1;
-  const pts = values.map((v, i) => {
-    const x = pad + (i / (values.length - 1)) * (W - pad * 2);
-    const y = H - pad - ((v - min) / range) * (H - pad * 2);
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  });
-  const last  = pts[pts.length - 1].split(',');
-  const val   = Math.round(values[values.length - 1]);
-  return `<div class="sparkline-wrap">
-    <div class="sparkline-label">${label}</div>
-    <svg viewBox="0 0 ${W} ${H}" class="sparkline-svg">
-      <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
-      <circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${color}"/>
-    </svg>
-    <div class="sparkline-val" style="color:${color}">${val}${unit}</div>
+let _cycleHistory = [];
+
+function renderWhoopGraph(period) {
+  const all  = _cycleHistory;
+  if (all.length < 2) { document.getElementById('whoop-graphs').innerHTML = ''; return; }
+
+  const data = period === '7d' ? all.slice(-7) : all;
+  const vals = data.map(c => c.score?.strain ?? 0);
+  const hrVals = data.map(c => c.score?.average_heart_rate ?? 0);
+
+  const W = 300, H = 80, pL = 28, pR = 8, pT = 8, pB = 20;
+  const gW = W - pL - pR, gH = H - pT - pB;
+
+  const minS = 0, maxS = Math.max(...vals, 5);
+  const minHR = Math.max(0, Math.min(...hrVals) - 5);
+  const maxHR = Math.max(...hrVals) + 5;
+
+  const sx = (i) => pL + (i / (data.length - 1)) * gW;
+  const sy = (v) => pT + gH - ((v - minS) / (maxS - minS || 1)) * gH;
+  const hy = (v) => pT + gH - ((v - minHR) / (maxHR - minHR || 1)) * gH;
+
+  const sPts = vals.map((v, i) => `${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ');
+  const hPts = hrVals.map((v, i) => `${sx(i).toFixed(1)},${hy(v).toFixed(1)}`).join(' ');
+
+  // x-axis date labels: show ~4 evenly spaced
+  const labelIdx = [0, Math.floor(data.length / 3), Math.floor(data.length * 2 / 3), data.length - 1]
+    .filter((v, i, a) => a.indexOf(v) === i);
+  const dateLabels = labelIdx.map(i => {
+    const d = new Date(data[i].start);
+    const lbl = `${d.getDate()}/${d.getMonth() + 1}`;
+    return `<text x="${sx(i).toFixed(1)}" y="${H}" text-anchor="middle" class="wg-date">${lbl}</text>`;
+  }).join('');
+
+  const areaPath = `M${sx(0).toFixed(1)},${sy(vals[0]).toFixed(1)} ` +
+    vals.map((v, i) => `L${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).slice(1).join(' ') +
+    ` L${sx(data.length - 1).toFixed(1)},${(pT + gH).toFixed(1)} L${pL},${(pT + gH).toFixed(1)} Z`;
+
+  const tabHtml = `<div class="wg-tabs">
+    <button class="wg-tab${period === '7d' ? ' active' : ''}" onclick="switchGraphPeriod('7d')">7D</button>
+    <button class="wg-tab${period === '30d' ? ' active' : ''}" onclick="switchGraphPeriod('30d')">30D</button>
   </div>`;
+
+  const svgHtml = `<svg viewBox="0 0 ${W} ${H}" class="wg-svg" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fb923c" stop-opacity="0.25"/>
+        <stop offset="100%" stop-color="#fb923c" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <line x1="${pL}" y1="${pT}" x2="${pL}" y2="${pT + gH}" stroke="#1e293b" stroke-width="1"/>
+    <line x1="${pL}" y1="${pT + gH}" x2="${W - pR}" y2="${pT + gH}" stroke="#1e293b" stroke-width="1"/>
+    <text x="${pL - 4}" y="${pT + 4}" text-anchor="end" class="wg-val">${maxS.toFixed(0)}</text>
+    <text x="${pL - 4}" y="${pT + gH}" text-anchor="end" class="wg-val">0</text>
+    <path d="${areaPath}" fill="url(#sg)"/>
+    <polyline points="${sPts}" fill="none" stroke="#fb923c" stroke-width="1.5" stroke-linejoin="round"/>
+    ${hrVals.length > 1 ? `<polyline points="${hPts}" fill="none" stroke="#f472b6" stroke-width="1.2" stroke-linejoin="round" stroke-dasharray="3,2" opacity="0.7"/>` : ''}
+    ${dateLabels}
+  </svg>`;
+
+  const legendHtml = `<div class="wg-legend">
+    <span class="wg-leg" style="color:#fb923c">— Strain</span>
+    ${hrVals.length > 1 ? `<span class="wg-leg" style="color:#f472b6">- - Avg HR</span>` : ''}
+  </div>`;
+
+  document.getElementById('whoop-graphs').innerHTML = tabHtml + svgHtml + legendHtml;
+}
+
+function switchGraphPeriod(period) {
+  renderWhoopGraph(period);
 }
 
 async function whoopLoad() {
@@ -454,25 +503,9 @@ async function whoopLoad() {
   document.getElementById('whoop-card').style.display       = 'block';
   document.getElementById('whoop-connect-wrap').style.display = 'none';
 
-  // Sparklines — use whatever data is available
-  if (history) {
-    const cycles     = [...(history.cycles     || [])].reverse();
-    const recoveries = [...(history.recoveries || [])].reverse();
-    const sleeps     = [...(history.sleeps     || [])].reverse();
-
-    const strainVals = cycles.map(c => c.score?.strain).filter(v => v != null);
-    const avgHRVals  = cycles.map(c => c.score?.average_heart_rate).filter(v => v != null);
-    const recovVals  = recoveries.map(r => r.score?.recovery_score).filter(v => v != null);
-    const sleepVals  = sleeps.map(s => s.score?.sleep_performance_percentage).filter(v => v != null);
-
-    const graphs = [
-      renderSparkline(strainVals, '#fb923c', 'Strain',   ''),
-      renderSparkline(avgHRVals,  '#f472b6', 'Avg HR',   ''),
-      renderSparkline(recovVals,  '#4ade80', 'Recovery', '%'),
-      renderSparkline(sleepVals,  '#34d399', 'Sleep',    '%'),
-    ].filter(Boolean).join('');
-
-    document.getElementById('whoop-graphs').innerHTML = graphs;
+  if (history?.cycles?.length) {
+    _cycleHistory = [...history.cycles].reverse();
+    renderWhoopGraph('7d');
   }
 }
 
@@ -534,7 +567,8 @@ function showTodayWorkout(workout) {
     <div class="twc-exercises">
       ${workout.exercises.map(e => `<span class="twc-ex-tag">${e.name}</span>`).join('')}
     </div>
-    <button class="twc-start-btn" onclick="startAIWorkout()">Start workout →</button>`;
+    <button class="twc-start-btn" onclick="startAIWorkout()">Start workout →</button>
+    <button class="twc-regen-btn" onclick="regenWorkout()">Regenerate ↺</button>`;
 
   window._todayWorkout = workout;
 }
@@ -545,6 +579,14 @@ function startAIWorkout() {
   if (!workout) return;
   _currentDay = { id: 'AI', name: workout.name, focus: workout.focus, exercises: workout.exercises };
   startWorkout();
+}
+
+function regenWorkout() {
+  localStorage.removeItem('ff_today_workout');
+  window._todayWorkout = null;
+  document.getElementById('today-workout-card').style.display = 'none';
+  document.getElementById('generate-btn').style.display       = 'block';
+  generateWorkout();
 }
 
 // ── Boot ──────────────────────────────────────────────────────

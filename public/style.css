@@ -232,3 +232,17 @@ body { font-family: 'Mulish', sans-serif; color: var(--text); -webkit-font-smoot
 
 /* ── Calendar AI badge ── */
 .cal-badge--AI { background: #6366f1; color: #fff; }
+
+/* ── Whoop graph ── */
+.wg-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.wg-tab { background: none; border: 1px solid var(--border2); border-radius: 6px; color: var(--muted); font-family: inherit; font-size: 11px; font-weight: 700; padding: 4px 10px; cursor: pointer; }
+.wg-tab.active { background: var(--border2); color: var(--text); }
+.wg-svg { width: 100%; height: auto; display: block; }
+.wg-date { font-size: 7px; fill: #4a4a4a; }
+.wg-val  { font-size: 7px; fill: #4a4a4a; }
+.wg-legend { display: flex; gap: 14px; margin-top: 6px; }
+.wg-leg { font-size: 11px; font-weight: 600; }
+
+/* ── Regenerate button ── */
+.twc-regen-btn { width: 100%; margin-top: 8px; padding: 10px; background: none; border: 1px solid var(--border2); border-radius: 10px; color: var(--muted); font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+.twc-regen-btn:hover { color: var(--text); }
