@@ -48,6 +48,7 @@ RULES:
 - All exercises: dumbbells or bodyweight only
 - science: one plain-English sentence (no jargon) explaining WHY it works for fat loss/muscle
 - cue: one sentence with the single most important form tip
+- svgFn: pick the closest match from this exact list — squat, hinge, press, row, floorpress, bridge, curl, lateral, lunge, plank, kickback, deadbug, stepup
 
 Return ONLY valid JSON, no markdown, no explanation:
 {
@@ -62,7 +63,8 @@ Return ONLY valid JSON, no markdown, no explanation:
       "rest": 90,
       "muscles": ["Primary", "Secondary"],
       "cue": "Key form tip",
-      "science": "Plain English why"
+      "science": "Plain English why",
+      "svgFn": "squat"
     }
   ]
 }`;
