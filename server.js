@@ -106,20 +106,31 @@ ${recoveryScore !== null
   ? `- Recovery: ${recoveryScore}% → ${intensity} intensity session\n- HRV: ${hrv}ms\n- RHR: ${rhr}bpm`
   : '- Recovery data unavailable → moderate intensity'}
 
-RECENT WORKOUT HISTORY (avoid same muscles within 48h):
+RECENT WORKOUT HISTORY (last 7 sessions):
 ${historyStr}
 
-RULES:
-- light = 3-4 exercises, bodyweight or very light, mobility + core focus
+SESSION TYPE SELECTION — choose the best type given recovery + history:
+Available types: "Upper Push", "Upper Pull", "Lower Body", "Full Body", "Core & Mobility"
+- Avoid repeating the same type or overlapping muscle groups within 48h
+- light intensity → prefer "Core & Mobility" or light "Lower Body"
+- moderate intensity → "Upper Push", "Upper Pull", or "Lower Body"
+- full intensity → any type, favour what hasn't been done recently
+- If history is empty or varied, default to "Full Body"
+
+VOLUME BY INTENSITY:
+- light = 3-4 exercises, bodyweight or very light loads
 - moderate = 5-6 exercises, standard compound + accessory mix
 - full = 6-7 exercises, compound-first, heavier loads
+
+RULES:
 - All exercises: dumbbells or bodyweight only
 - science: one plain-English sentence explaining WHY it works for fat loss/muscle
 - cue: one sentence with the single most important form tip
-- svgFn: pick the closest match from this exact list — squat, hinge, press, row, floorpress, bridge, curl, lateral, lunge, plank, kickback, deadbug, stepup
+- svgFn: pick the closest match — squat, hinge, press, row, floorpress, bridge, curl, lateral, lunge, plank, kickback, deadbug, stepup
+- "type" field must be exactly one of: Upper Push, Upper Pull, Lower Body, Full Body, Core & Mobility
 
 Return ONLY valid JSON, no markdown:
-{"name":"Short session name","focus":"Main muscles","intensity":"${intensity}","exercises":[{"name":"Exercise name","sets":3,"reps":"10-12","rest":90,"muscles":["Primary","Secondary"],"cue":"Key form tip","science":"Plain English why","svgFn":"squat"}]}`;
+{"name":"Short session name","type":"Upper Push","focus":"Main muscles","intensity":"${intensity}","exercises":[{"name":"Exercise name","sets":3,"reps":"10-12","rest":90,"muscles":["Primary","Secondary"],"cue":"Key form tip","science":"Plain English why","svgFn":"squat"}]}`;
 
     const data = await claude(prompt, 2048);
     res.json(data);

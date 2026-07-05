@@ -547,6 +547,7 @@ function showTodayWorkout(workout) {
   card.innerHTML = `
     <div class="twc-header">
       <div>
+        ${workout.type ? `<div class="twc-type">${workout.type}</div>` : ''}
         <div class="twc-name">${workout.name}</div>
         <div class="twc-focus">${workout.focus}</div>
       </div>
