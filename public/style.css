@@ -101,7 +101,7 @@ body { font-family: 'Mulish', sans-serif; color: var(--text); -webkit-font-smoot
 .wk-progress-text { font-size: 11px; color: var(--muted); font-weight: 600; }
 .wk-elapsed { font-size: 13px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
 
-.wk-body { padding: 1.5rem 1.25rem; }
+.wk-body { padding: 1.5rem 1.25rem 10rem; }
 .wk-phase { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
 .wk-ex-name { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; line-height: 1.15; }
 .wk-ex-target { font-size: 14px; color: var(--muted); margin-bottom: 1.5rem; }
@@ -112,16 +112,25 @@ body { font-family: 'Mulish', sans-serif; color: var(--text); -webkit-font-smoot
 .wk-cue-label { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
 .wk-cue-text { font-size: 13px; line-height: 1.6; color: #aaa; }
 
-.wk-footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); border-top: 1px solid var(--border); padding: 1rem 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
-.wk-set-info { text-align: center; }
+.wk-footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); border-top: 1px solid var(--border); padding: 0.75rem 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.6rem; }
+.wk-footer-row1 { display: flex; align-items: center; gap: 0.75rem; }
+.wk-footer-row2 { display: flex; align-items: center; justify-content: center; }
+.wk-set-info { text-align: center; flex-shrink: 0; }
 .wk-set-label { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .wk-set-num { font-size: 16px; font-weight: 700; }
-.wk-counter-wrap { flex: 1; display: flex; align-items: center; justify-content: center; gap: 1.25rem; }
+.wk-weight-wrap { flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
+.wk-weight-display { text-align: center; min-width: 48px; }
+.wk-weight-num { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+.wk-weight-label { font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; display: block; }
+.wk-w-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border2); background: var(--surface); color: var(--text); font-size: 20px; font-weight: 300; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; flex-shrink: 0; }
+.wk-counter-wrap { display: flex; align-items: center; gap: 1.25rem; }
+.wk-timer-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.wk-timer-num { font-size: 42px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
 .wk-minus, .wk-plus { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border2); background: var(--surface); color: var(--text); font-size: 24px; font-weight: 300; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
 .wk-rep-display { text-align: center; }
 .wk-rep-num { font-size: 42px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
 .wk-rep-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
-.wk-done-btn { background: var(--text); color: var(--bg); border: none; border-radius: 10px; font-family: inherit; font-size: 13px; font-weight: 700; padding: 12px 16px; cursor: pointer; white-space: nowrap; }
+.wk-done-btn { background: var(--text); color: var(--bg); border: none; border-radius: 10px; font-family: inherit; font-size: 13px; font-weight: 700; padding: 12px 14px; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
 
 /* ── REST ── */
 .rest-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 1.5rem; padding: 2rem; }
@@ -157,7 +166,7 @@ body { font-family: 'Mulish', sans-serif; color: var(--text); -webkit-font-smoot
 .cal-dow span { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-align: center; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; padding: 0.5rem 1rem; }
 .cal-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; gap: 4px; }
-.cal-day-num { font-size: 13px; font-weight: 600; color: #333; line-height: 1; }
+.cal-day-num { font-size: 13px; font-weight: 600; color: #888; line-height: 1; }
 .cal-today { border: 1px solid var(--border2); }
 .cal-today .cal-day-num { color: var(--text); }
 .cal-logged { background: var(--surface); }

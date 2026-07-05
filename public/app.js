@@ -62,13 +62,27 @@ function switchLevel(btn, level) {
 let _exIdx = 0;
 let _setIdx = 0;
 let _reps = 0;
+let _weight = 0;
+let _timerInterval = null;
+let _timerLeft = 0;
 let _startTime = null;
 let _elapsedInterval = null;
+
+function isTimed(ex) {
+  return typeof ex.reps === 'string' && ex.reps.includes('sec');
+}
+
+function parseDuration(ex) {
+  const m = String(ex.reps).match(/(\d+)/);
+  return m ? parseInt(m[1]) : 30;
+}
 
 function startWorkout() {
   _exIdx = 0;
   _setIdx = 0;
   _reps = 0;
+  _weight = 0;
+  clearInterval(_timerInterval);
   _startTime = Date.now();
 
   clearInterval(_elapsedInterval);
@@ -85,19 +99,40 @@ function startWorkout() {
 }
 
 function renderExercise() {
-  const day  = _currentDay;
-  const ex   = day.exercises[_exIdx];
+  const day   = _currentDay;
+  const ex    = day.exercises[_exIdx];
   const total = day.exercises.length;
 
   document.getElementById('wk-prog-fill').style.width = `${(_exIdx / total) * 100}%`;
   document.getElementById('wk-prog-text').textContent = `Exercise ${_exIdx + 1} of ${total}`;
   document.getElementById('wk-set-num').textContent   = `${_setIdx + 1} / ${ex.sets}`;
 
-  _reps = 0;
-  document.getElementById('wk-rep-num').textContent = '0';
-
   const isLast = _exIdx === total - 1 && _setIdx === ex.sets - 1;
-  document.getElementById('wk-done-btn').textContent = isLast ? 'Finish ✓' : 'Done set ✓';
+  document.getElementById('wk-done-btn').textContent = isLast ? 'Finish ✓' : 'Done ✓';
+
+  // Weight — load last used for this exercise
+  const weights = JSON.parse(localStorage.getItem('ff_weights') || '{}');
+  _weight = weights[ex.name] || 0;
+  document.getElementById('wk-weight-num').textContent = _weight;
+
+  // Timed vs rep-counted
+  clearInterval(_timerInterval);
+  const timed = isTimed(ex);
+  document.getElementById('wk-counter-wrap').style.display = timed ? 'none' : 'flex';
+  document.getElementById('wk-timer-wrap').style.display   = timed ? 'flex' : 'none';
+
+  if (timed) {
+    _timerLeft = parseDuration(ex);
+    document.getElementById('wk-timer-num').textContent = _timerLeft;
+    _timerInterval = setInterval(() => {
+      _timerLeft--;
+      document.getElementById('wk-timer-num').textContent = _timerLeft;
+      if (_timerLeft <= 0) { clearInterval(_timerInterval); doneSet(); }
+    }, 1000);
+  } else {
+    _reps = 0;
+    document.getElementById('wk-rep-num').textContent = '0';
+  }
 
   const svg = ExerciseSVGs[ex.svgFn] ? ExerciseSVGs[ex.svgFn]() : '';
   document.getElementById('wk-body').innerHTML = `
@@ -117,11 +152,29 @@ function adjustRep(delta) {
   document.getElementById('wk-rep-num').textContent = _reps;
 }
 
+function adjustWeight(delta) {
+  _weight = Math.max(0, _weight + delta);
+  document.getElementById('wk-weight-num').textContent = _weight;
+}
+
 function doneSet() {
-  const day      = _currentDay;
-  const ex       = day.exercises[_exIdx];
+  clearInterval(_timerInterval);
+
+  const day       = _currentDay;
+  const ex        = day.exercises[_exIdx];
   const isLastSet = _setIdx >= ex.sets - 1;
   const isLastEx  = _exIdx  >= day.exercises.length - 1;
+
+  // Persist weight + log history entry
+  const weights = JSON.parse(localStorage.getItem('ff_weights') || '{}');
+  weights[ex.name] = _weight;
+  localStorage.setItem('ff_weights', JSON.stringify(weights));
+
+  const histKey = `${today()}_${day.id}`;
+  const hist    = JSON.parse(localStorage.getItem('ff_history') || '{}');
+  if (!hist[histKey]) hist[histKey] = [];
+  hist[histKey].push({ exercise: ex.name, set: _setIdx + 1, reps: isTimed(ex) ? ex.reps : _reps, weight: _weight });
+  localStorage.setItem('ff_history', JSON.stringify(hist));
 
   if (!isLastSet) {
     const nextSet = _setIdx + 1;
@@ -149,6 +202,7 @@ function confirmQuit() {
   if (confirm('End workout early?')) {
     clearInterval(_elapsedInterval);
     clearInterval(_restInterval);
+    clearInterval(_timerInterval);
     show('s-day');
   }
 }

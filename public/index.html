@@ -93,19 +93,35 @@
   </div>
 
   <div class="wk-footer">
-    <div class="wk-set-info">
-      <div class="wk-set-label">Set</div>
-      <div class="wk-set-num" id="wk-set-num">1 / 3</div>
-    </div>
-    <div class="wk-counter-wrap">
-      <button class="wk-minus" onclick="adjustRep(-1)">−</button>
-      <div class="wk-rep-display">
-        <div class="wk-rep-num" id="wk-rep-num">0</div>
-        <div class="wk-rep-label">reps</div>
+    <div class="wk-footer-row1">
+      <div class="wk-set-info">
+        <div class="wk-set-label">Set</div>
+        <div class="wk-set-num" id="wk-set-num">1 / 3</div>
       </div>
-      <button class="wk-plus" onclick="adjustRep(1)">+</button>
+      <div class="wk-weight-wrap">
+        <button class="wk-w-btn" onclick="adjustWeight(-1)">−</button>
+        <div class="wk-weight-display">
+          <span class="wk-weight-num" id="wk-weight-num">0</span>
+          <span class="wk-weight-label">kg</span>
+        </div>
+        <button class="wk-w-btn" onclick="adjustWeight(1)">+</button>
+      </div>
+      <button class="wk-done-btn" id="wk-done-btn" onclick="doneSet()">Done ✓</button>
     </div>
-    <button class="wk-done-btn" id="wk-done-btn" onclick="doneSet()">Done set ✓</button>
+    <div class="wk-footer-row2">
+      <div class="wk-counter-wrap" id="wk-counter-wrap">
+        <button class="wk-minus" onclick="adjustRep(-1)">−</button>
+        <div class="wk-rep-display">
+          <div class="wk-rep-num" id="wk-rep-num">0</div>
+          <div class="wk-rep-label">reps</div>
+        </div>
+        <button class="wk-plus" onclick="adjustRep(1)">+</button>
+      </div>
+      <div class="wk-timer-wrap" id="wk-timer-wrap" style="display:none">
+        <div class="wk-timer-num" id="wk-timer-num">30</div>
+        <div class="wk-rep-label">sec</div>
+      </div>
+    </div>
   </div>
 </div>
 
