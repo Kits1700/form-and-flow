@@ -369,73 +369,88 @@ async function whoopGetToken() {
 
 let _cycleHistory = [];
 
-function renderWhoopGraph(period) {
-  const all  = _cycleHistory;
-  if (all.length < 2) { document.getElementById('whoop-graphs').innerHTML = ''; return; }
-
-  const data = period === '7d' ? all.slice(-7) : all;
-  const vals = data.map(c => c.score?.strain ?? 0);
-  const hrVals = data.map(c => c.score?.average_heart_rate ?? 0);
-
-  const W = 300, H = 80, pL = 28, pR = 8, pT = 8, pB = 20;
-  const gW = W - pL - pR, gH = H - pT - pB;
-
-  const minS = 0, maxS = Math.max(...vals, 5);
-  const minHR = Math.max(0, Math.min(...hrVals) - 5);
-  const maxHR = Math.max(...hrVals) + 5;
-
-  const sx = (i) => pL + (i / (data.length - 1)) * gW;
-  const sy = (v) => pT + gH - ((v - minS) / (maxS - minS || 1)) * gH;
-  const hy = (v) => pT + gH - ((v - minHR) / (maxHR - minHR || 1)) * gH;
-
-  const sPts = vals.map((v, i) => `${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ');
-  const hPts = hrVals.map((v, i) => `${sx(i).toFixed(1)},${hy(v).toFixed(1)}`).join(' ');
-
-  // x-axis date labels: show ~4 evenly spaced
-  const labelIdx = [0, Math.floor(data.length / 3), Math.floor(data.length * 2 / 3), data.length - 1]
-    .filter((v, i, a) => a.indexOf(v) === i);
-  const dateLabels = labelIdx.map(i => {
-    const d = new Date(data[i].start);
-    const lbl = `${d.getDate()}/${d.getMonth() + 1}`;
-    return `<text x="${sx(i).toFixed(1)}" y="${H}" text-anchor="middle" class="wg-date">${lbl}</text>`;
-  }).join('');
-
-  const areaPath = `M${sx(0).toFixed(1)},${sy(vals[0]).toFixed(1)} ` +
-    vals.map((v, i) => `L${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).slice(1).join(' ') +
-    ` L${sx(data.length - 1).toFixed(1)},${(pT + gH).toFixed(1)} L${pL},${(pT + gH).toFixed(1)} Z`;
-
-  const tabHtml = `<div class="wg-tabs">
-    <button class="wg-tab${period === '7d' ? ' active' : ''}" onclick="switchGraphPeriod('7d')">7D</button>
-    <button class="wg-tab${period === '30d' ? ' active' : ''}" onclick="switchGraphPeriod('30d')">30D</button>
+function metricCard(label, value, unit, color) {
+  return `<div class="wm-card">
+    <div class="wm-accent" style="background:${color}"></div>
+    <div class="wm-label">${label}</div>
+    <div class="wm-val-row">
+      <span class="wm-value">${value}</span>
+      <span class="wm-unit">${unit}</span>
+    </div>
   </div>`;
-
-  const svgHtml = `<svg viewBox="0 0 ${W} ${H}" class="wg-svg" preserveAspectRatio="none">
-    <defs>
-      <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#fb923c" stop-opacity="0.25"/>
-        <stop offset="100%" stop-color="#fb923c" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-    <line x1="${pL}" y1="${pT}" x2="${pL}" y2="${pT + gH}" stroke="#1e293b" stroke-width="1"/>
-    <line x1="${pL}" y1="${pT + gH}" x2="${W - pR}" y2="${pT + gH}" stroke="#1e293b" stroke-width="1"/>
-    <text x="${pL - 4}" y="${pT + 4}" text-anchor="end" class="wg-val">${maxS.toFixed(0)}</text>
-    <text x="${pL - 4}" y="${pT + gH}" text-anchor="end" class="wg-val">0</text>
-    <path d="${areaPath}" fill="url(#sg)"/>
-    <polyline points="${sPts}" fill="none" stroke="#fb923c" stroke-width="1.5" stroke-linejoin="round"/>
-    ${hrVals.length > 1 ? `<polyline points="${hPts}" fill="none" stroke="#f472b6" stroke-width="1.2" stroke-linejoin="round" stroke-dasharray="3,2" opacity="0.7"/>` : ''}
-    ${dateLabels}
-  </svg>`;
-
-  const legendHtml = `<div class="wg-legend">
-    <span class="wg-leg" style="color:#fb923c">— Strain</span>
-    ${hrVals.length > 1 ? `<span class="wg-leg" style="color:#f472b6">- - Avg HR</span>` : ''}
-  </div>`;
-
-  document.getElementById('whoop-graphs').innerHTML = tabHtml + svgHtml + legendHtml;
 }
 
-function switchGraphPeriod(period) {
-  renderWhoopGraph(period);
+function buildTrendGraph(data) {
+  if (!data || data.length < 2) return '<p class="wt-empty">Not enough data yet.</p>';
+  const vals   = data.map(c => c.score?.strain ?? 0);
+  const W = 300, H = 90, pL = 28, pR = 8, pT = 10, pB = 22;
+  const gW = W - pL - pR, gH = H - pT - pB;
+  const maxS = Math.max(...vals, 5);
+  const sx = i => pL + (i / (data.length - 1)) * gW;
+  const sy = v => pT + gH - (v / maxS) * gH;
+  const pts = vals.map((v, i) => `${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ');
+  const area = `M${sx(0).toFixed(1)},${sy(vals[0]).toFixed(1)} ` +
+    vals.slice(1).map((v, i) => `L${sx(i+1).toFixed(1)},${sy(v).toFixed(1)}`).join(' ') +
+    ` L${sx(data.length-1).toFixed(1)},${(pT+gH)} L${pL},${(pT+gH)} Z`;
+  const labelIdx = [...new Set([0, Math.floor(data.length/2), data.length-1])];
+  const dates = labelIdx.map(i => {
+    const d = new Date(data[i].start);
+    return `<text x="${sx(i).toFixed(1)}" y="${H-2}" text-anchor="middle" class="wg-date">${d.getDate()}/${d.getMonth()+1}</text>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" class="wg-svg">
+    <defs><linearGradient id="sg2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fb923c" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#fb923c" stop-opacity="0"/>
+    </linearGradient></defs>
+    <line x1="${pL}" y1="${pT}" x2="${pL}" y2="${pT+gH}" stroke="#1e293b" stroke-width="1"/>
+    <line x1="${pL}" y1="${pT+gH}" x2="${W-pR}" y2="${pT+gH}" stroke="#1e293b" stroke-width="1"/>
+    <text x="${pL-4}" y="${pT+5}" text-anchor="end" class="wg-val">${maxS.toFixed(0)}</text>
+    <text x="${pL-4}" y="${pT+gH}" text-anchor="end" class="wg-val">0</text>
+    <path d="${area}" fill="url(#sg2)"/>
+    <polyline points="${pts}" fill="none" stroke="#fb923c" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${vals.map((v,i) => `<circle cx="${sx(i).toFixed(1)}" cy="${sy(v).toFixed(1)}" r="2.5" fill="#fb923c"/>`).join('')}
+    ${dates}
+  </svg>`;
+}
+
+function buildTrendLog(data) {
+  if (!data?.length) return '';
+  return `<div class="wt-log-list">
+    ${[...data].reverse().map(c => {
+      const d    = new Date(c.start);
+      const day  = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      const s    = c.score?.strain?.toFixed(1) ?? '–';
+      const hr   = c.score?.average_heart_rate ?? '–';
+      const mhr  = c.score?.max_heart_rate ?? '–';
+      const kcal = c.score?.kilojoule ? Math.round(c.score.kilojoule / 4.184) : '–';
+      return `<div class="wt-row">
+        <div class="wt-row-date">${day}</div>
+        <div class="wt-row-metrics">
+          <span style="color:#fb923c">Strain ${s}</span>
+          <span style="color:#f472b6">Avg ${hr}bpm</span>
+          <span style="color:#94a3b8">Max ${mhr}bpm</span>
+          <span style="color:#34d399">${kcal} kcal</span>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function openWhoop() {
+  show('s-whoop');
+  renderTrends('7d');
+}
+
+function renderTrends(period) {
+  const data = period === '7d' ? _cycleHistory.slice(-7) : _cycleHistory;
+  document.getElementById('wt-graph').innerHTML = buildTrendGraph(data);
+  document.getElementById('wt-log').innerHTML   = buildTrendLog(data);
+}
+
+function switchTrendPeriod(period, btn) {
+  document.querySelectorAll('.wt-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTrends(period);
 }
 
 async function whoopLoad() {
@@ -457,55 +472,47 @@ async function whoopLoad() {
   const kcal    = cycle?.score?.kilojoule ? Math.round(cycle.score.kilojoule / 4.184) : null;
   const slp     = sleep?.score?.sleep_performance_percentage;
 
-  let scoreText, scoreSuffix, color, note, dateStr, metrics;
+  // Date label
+  const src   = recovery?.created_at || cycle?.created_at;
+  const dateStr = src
+    ? new Date(src).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+    : new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+
+  document.getElementById('whoop-date').textContent = dateStr;
+
+  // Build metric cards
+  const cards = [];
 
   if (recovery?.score) {
     const score = Math.round(recovery.score.recovery_score);
     const hrv   = Math.round(recovery.score.hrv_rmssd_milli);
     const rhr   = Math.round(recovery.score.resting_heart_rate);
-    color       = score >= 67 ? '#4ade80' : score >= 34 ? '#facc15' : '#f87171';
-    note        = score >= 67 ? 'Good to train hard today.' : score < 34 ? 'Consider a lighter session or rest.' : 'Moderate effort recommended.';
-    scoreText   = String(score);
-    scoreSuffix = '%';
-    dateStr     = new Date(recovery.created_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-    metrics     = `<span>HRV ${hrv}ms</span><span>RHR ${rhr}bpm</span>` +
-                  (strain != null ? `<span>Strain ${strain.toFixed(1)}</span>` : '') +
-                  (slp != null    ? `<span>Sleep ${Math.round(slp)}%</span>`  : '');
-  } else if (cycle?.score) {
-    // No recovery yet — show cycle metrics as main display
-    const strainColor = strain >= 14 ? '#f87171' : strain >= 10 ? '#facc15' : '#4ade80';
-    color       = strainColor;
-    scoreText   = strain != null ? strain.toFixed(1) : '–';
-    scoreSuffix = 'strain';
-    dateStr     = new Date(cycle.created_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-    note        = 'Recovery score needs overnight sleep data. Showing today\'s cycle.';
-    const bits  = [];
-    if (avgHR != null) bits.push(`<span>Avg HR ${avgHR}bpm</span>`);
-    if (maxHR != null) bits.push(`<span>Max HR ${maxHR}bpm</span>`);
-    if (kcal  != null) bits.push(`<span>${kcal} kcal</span>`);
-    metrics     = bits.join('');
+    const rc    = score >= 67 ? '#4ade80' : score >= 34 ? '#facc15' : '#f87171';
+    const note  = score >= 67 ? 'Good to train hard today.'
+                : score < 34  ? 'Consider a lighter session or rest.'
+                : 'Moderate effort recommended.';
+    document.getElementById('whoop-note').textContent = note;
+    document.getElementById('whoop-note').style.color = rc;
+    cards.push(metricCard('Recovery', score, '%', rc));
+    cards.push(metricCard('HRV', hrv, 'ms', '#818cf8'));
+    cards.push(metricCard('Resting HR', rhr, 'bpm', '#f472b6'));
   } else {
-    color       = '#94a3b8';
-    scoreText   = '–';
-    scoreSuffix = '';
-    dateStr     = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-    note        = 'No data yet. Wear your Whoop today.';
-    metrics     = '';
+    document.getElementById('whoop-note').textContent = 'Recovery needs overnight sleep data.';
+    document.getElementById('whoop-note').style.color = '#64748b';
   }
 
-  document.getElementById('whoop-score').textContent        = scoreText;
-  document.getElementById('whoop-score').style.color        = color;
-  document.getElementById('whoop-score-label').textContent  = scoreSuffix;
-  document.getElementById('whoop-date').textContent         = dateStr;
-  document.getElementById('whoop-metrics').innerHTML        = metrics;
-  document.getElementById('whoop-note').textContent         = note;
-  document.getElementById('whoop-note').style.color         = color;
-  document.getElementById('whoop-card').style.display       = 'block';
+  if (strain  != null) cards.push(metricCard('Strain',  strain.toFixed(1), '/21', '#fb923c'));
+  if (avgHR   != null) cards.push(metricCard('Avg HR',  avgHR,  'bpm', '#f472b6'));
+  if (maxHR   != null) cards.push(metricCard('Max HR',  maxHR,  'bpm', '#e879f9'));
+  if (kcal    != null) cards.push(metricCard('Calories', kcal.toLocaleString(), 'kcal', '#34d399'));
+  if (slp     != null) cards.push(metricCard('Sleep',   Math.round(slp), '%', '#34d399'));
+
+  document.getElementById('whoop-metric-grid').innerHTML = cards.join('');
+  document.getElementById('whoop-card').style.display        = 'block';
   document.getElementById('whoop-connect-wrap').style.display = 'none';
 
   if (history?.cycles?.length) {
     _cycleHistory = [...history.cycles].reverse();
-    renderWhoopGraph('7d');
   }
 }
 

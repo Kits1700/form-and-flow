@@ -22,19 +22,14 @@
   <div id="whoop-card" class="whoop-card" style="display:none">
     <div class="whoop-hdr">
       <span class="whoop-logo">W</span>
-      <span class="whoop-title">Recovery</span>
-      <span class="whoop-date" id="whoop-date"></span>
-      <button class="whoop-disconnect" onclick="whoopDisconnect()">Disconnect</button>
-    </div>
-    <div class="whoop-body">
-      <div class="whoop-score-wrap">
-        <span class="whoop-score" id="whoop-score">—</span>
-        <span class="whoop-score-label" id="whoop-score-label">%</span>
+      <span class="whoop-title" id="whoop-date">Today</span>
+      <div class="whoop-hdr-right">
+        <button class="whoop-trends-btn" onclick="openWhoop()">Trends →</button>
+        <button class="whoop-disconnect" onclick="whoopDisconnect()">Disconnect</button>
       </div>
-      <div class="whoop-metrics" id="whoop-metrics"></div>
     </div>
     <div class="whoop-note" id="whoop-note"></div>
-    <div class="whoop-graphs" id="whoop-graphs"></div>
+    <div class="whoop-metric-grid" id="whoop-metric-grid"></div>
   </div>
   <div id="whoop-connect-wrap" class="whoop-connect-wrap">
     <button class="whoop-connect-btn" onclick="whoopConnect()">Connect Whoop</button>
@@ -168,6 +163,23 @@
     <div class="cal-leg-item"><span class="cal-badge cal-badge--A">A</span>Preset Day A</div>
     <div class="cal-leg-item"><span class="cal-badge cal-badge--B">B</span>Preset Day B</div>
     <div class="cal-leg-item"><span class="cal-badge cal-badge--C">C</span>Preset Day C</div>
+  </div>
+</div>
+
+<!-- WHOOP TRENDS ──────────────────────────────── -->
+<div id="s-whoop" class="screen">
+  <div class="whoop-trends-hdr">
+    <button class="back-btn" onclick="show('s-home')">←</button>
+    <span class="whoop-trends-title">Whoop Trends</span>
+    <div style="width:36px"></div>
+  </div>
+  <div class="whoop-trends-body">
+    <div class="wt-tabs">
+      <button class="wt-tab active" onclick="switchTrendPeriod('7d', this)">7 Days</button>
+      <button class="wt-tab" onclick="switchTrendPeriod('30d', this)">30 Days</button>
+    </div>
+    <div id="wt-graph"></div>
+    <div id="wt-log"></div>
   </div>
 </div>
 
