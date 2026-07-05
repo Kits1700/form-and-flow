@@ -318,72 +318,75 @@ function renderCalendar() {
 
   document.getElementById('cal-month-label').textContent = `${MONTHS[_calMonth]} ${_calYear}`;
 
-  // Grid — dots only
+  const steps      = JSON.parse(localStorage.getItem('ff_steps')       || '{}');
+  const whoopDaily = JSON.parse(localStorage.getItem('ff_whoop_daily') || '{}');
+
+  // Grid — compact, clickable
   let grid = '';
   for (let i = 0; i < startDow; i++) grid += '<div class="cal-cell cal-cell--empty"></div>';
   for (let d = 1; d <= daysInMo; d++) {
     const ds      = `${_calYear}-${String(_calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const logged  = log[ds];
-    const hasLog  = !!logged;
+    const hasData = !!(log[ds] || steps[ds] != null || whoopDaily[ds]);
     const isToday = ds === todayStr;
-    const cls     = ['cal-cell', isToday ? 'cal-today' : '', hasLog ? 'cal-logged' : ''].filter(Boolean).join(' ');
-    grid += `<div class="${cls}">
+    const cls     = ['cal-cell', isToday ? 'cal-today' : '', hasData ? 'cal-logged' : ''].filter(Boolean).join(' ');
+    grid += `<div class="${cls}" onclick="showCalDetail('${ds}')">
       <span class="cal-day-num">${d}</span>
-      ${hasLog ? '<span class="cal-dot"></span>' : ''}
+      ${hasData ? '<span class="cal-dot"></span>' : ''}
     </div>`;
   }
   document.getElementById('cal-grid').innerHTML = grid;
+  document.getElementById('cal-detail').innerHTML = '';
+}
 
-  // Activity feed — logged days in this month, newest first
-  const steps      = JSON.parse(localStorage.getItem('ff_steps')       || '{}');
-  const whoopDaily = JSON.parse(localStorage.getItem('ff_whoop_daily') || '{}');
-  const entries = [];
+function showCalDetail(ds) {
+  // Deselect all, select tapped cell
+  document.querySelectorAll('.cal-cell').forEach(c => c.classList.remove('cal-selected'));
+  const cell = document.querySelector(`.cal-cell[onclick="showCalDetail('${ds}')"]`);
+  if (cell) cell.classList.add('cal-selected');
 
-  for (let d = daysInMo; d >= 1; d--) {
-    const ds      = `${_calYear}-${String(_calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const logged  = log[ds];
-    const stepVal = steps[ds];
-    const whoop   = whoopDaily[ds];
+  const log        = JSON.parse(localStorage.getItem('ff_log')          || '{}');
+  const steps      = JSON.parse(localStorage.getItem('ff_steps')        || '{}');
+  const whoopDaily = JSON.parse(localStorage.getItem('ff_whoop_daily')  || '{}');
 
-    // Show entry if there's any data for this day
-    if (!logged && stepVal == null && !whoop) continue;
+  const logged  = log[ds];
+  const stepVal = steps[ds];
+  const whoop   = whoopDaily[ds];
 
-    const info    = logged ? (typeof logged === 'object' ? logged : { id: logged, name: logged, focus: '', muscles: [] }) : null;
-    const date    = new Date(_calYear, _calMonth, d);
-    const isToday = ds === todayStr;
-    const dayStr  = isToday ? 'Today' : date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
-
-    // Whoop score label
-    let whoopScore = null;
-    if (whoop) {
-      const r = whoop.recovery ?? 0;
-      const s = whoop.strain   ?? 0;
-      const sl = whoop.sleep   ?? 0;
-      if (r >= 67 && s >= 8 && sl >= 70)       whoopScore = 'Great';
-      else if (r >= 67 || (r >= 34 && sl >= 60)) whoopScore = 'Good';
-      else if (r > 0 || s > 0)                  whoopScore = 'Light';
-    }
-
-    const rows = [];
-    if (info)        rows.push(`<div class="cal-entry-row"><span class="cal-entry-key">Workout</span><span class="cal-entry-val">${info.name || info.id}</span></div>`);
-    if (stepVal != null) rows.push(`<div class="cal-entry-row"><span class="cal-entry-key">Steps</span><span class="cal-entry-val">${stepVal.toLocaleString()}</span></div>`);
-    if (whoop) {
-      const parts = [];
-      if (whoop.recovery != null) parts.push(`Recovery ${whoop.recovery}%`);
-      if (whoop.strain   != null) parts.push(`Strain ${whoop.strain}`);
-      if (whoop.sleep    != null) parts.push(`Sleep ${whoop.sleep}%`);
-      rows.push(`<div class="cal-entry-row"><span class="cal-entry-key">Whoop${whoopScore ? ` · ${whoopScore}` : ''}</span><span class="cal-entry-val">${parts.join(' · ')}</span></div>`);
-    }
-
-    entries.push(`<div class="cal-entry">
-      <div class="cal-entry-date">${dayStr}</div>
-      ${rows.join('')}
-    </div>`);
+  if (!logged && stepVal == null && !whoop) {
+    document.getElementById('cal-detail').innerHTML = '';
+    return;
   }
 
-  document.getElementById('cal-feed').innerHTML = entries.length
-    ? entries.join('')
-    : '<div class="cal-feed-empty">No data logged this month.</div>';
+  const [y, m, d]  = ds.split('-').map(Number);
+  const date        = new Date(y, m - 1, d);
+  const isToday     = ds === today();
+  const dayStr      = isToday ? 'Today' : date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
+
+  const info = logged ? (typeof logged === 'object' ? logged : { id: logged, name: logged, muscles: [] }) : null;
+
+  let whoopScore = null;
+  if (whoop) {
+    const r = whoop.recovery ?? 0, s = whoop.strain ?? 0, sl = whoop.sleep ?? 0;
+    if (r >= 67 && s >= 8 && sl >= 70)        whoopScore = 'Great day';
+    else if (r >= 67 || (r >= 34 && sl >= 60)) whoopScore = 'Good day';
+    else if (r > 0 || s > 0)                  whoopScore = 'Light day';
+  }
+
+  const rows = [];
+  if (info) rows.push(`<div class="cal-entry-row"><span class="cal-entry-key">Workout</span><span class="cal-entry-val">${info.name || info.id}</span></div>`);
+  if (stepVal != null) rows.push(`<div class="cal-entry-row"><span class="cal-entry-key">Steps</span><span class="cal-entry-val">${stepVal.toLocaleString()}</span></div>`);
+  if (whoop) {
+    const parts = [];
+    if (whoop.recovery != null) parts.push(`Recovery ${whoop.recovery}%`);
+    if (whoop.strain   != null) parts.push(`Strain ${whoop.strain}`);
+    if (whoop.sleep    != null) parts.push(`Sleep ${whoop.sleep}%`);
+    rows.push(`<div class="cal-entry-row"><span class="cal-entry-key">Whoop${whoopScore ? ` · ${whoopScore}` : ''}</span><span class="cal-entry-val">${parts.join(' · ')}</span></div>`);
+  }
+
+  document.getElementById('cal-detail').innerHTML = `
+    <div class="cal-detail-date">${dayStr}</div>
+    ${rows.join('')}
+  `;
 }
 
 // ── Whoop ─────────────────────────────────────────────────────
