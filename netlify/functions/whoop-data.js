@@ -11,27 +11,33 @@ exports.handler = async (event) => {
     const headers = { Authorization: `Bearer ${token}` };
 
     const [recoveryRes, cycleRes, sleepRes, workoutRes] = await Promise.all([
-      fetch('https://api.prod.whoop.com/developer/v1/recovery/?limit=1', { headers }),
-      fetch('https://api.prod.whoop.com/developer/v1/cycle/?limit=1', { headers }),
-      fetch('https://api.prod.whoop.com/developer/v1/sleep/?limit=1', { headers }),
-      fetch('https://api.prod.whoop.com/developer/v1/workout/?limit=5', { headers }),
+      fetch('https://api.prod.whoop.com/developer/v1/recovery/?limit=7', { headers }),
+      fetch('https://api.prod.whoop.com/developer/v1/cycle/?limit=7', { headers }),
+      fetch('https://api.prod.whoop.com/developer/v1/sleep/?limit=7', { headers }),
+      fetch('https://api.prod.whoop.com/developer/v1/workout/?limit=10', { headers }),
     ]);
 
-    const [recovery, cycle, sleep, workout] = await Promise.all([
+    const [recoveryData, cycleData, sleepData, workoutData] = await Promise.all([
       safeJson(recoveryRes),
       safeJson(cycleRes),
       safeJson(sleepRes),
       safeJson(workoutRes),
     ]);
 
+    const recoveries = recoveryData?.records ?? [];
+    const cycles     = cycleData?.records    ?? [];
+    const sleeps     = sleepData?.records    ?? [];
+    const workouts   = workoutData?.records  ?? [];
+
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        recovery: recovery?.records?.[0] ?? null,
-        cycle:    cycle?.records?.[0]    ?? null,
-        sleep:    sleep?.records?.[0]    ?? null,
-        workouts: workout?.records       ?? [],
+        recovery: recoveries[0] ?? null,
+        cycle:    cycles[0]     ?? null,
+        sleep:    sleeps[0]     ?? null,
+        workouts,
+        history: { recoveries, cycles, sleeps },
       }),
     };
   } catch (err) {

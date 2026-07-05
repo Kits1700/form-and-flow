@@ -15,16 +15,9 @@
 <div id="s-home" class="screen active">
   <div class="home-hero">
     <div class="home-logo">Form &amp; Flow</div>
-    <h1 class="home-title">Your programme.</h1>
-    <p class="home-sub">3 days a week · Dumbbells only · Fat loss + muscle</p>
-    <div class="home-stats">
-      <div class="hs"><span class="hs-n">3</span><span class="hs-l">Days / week</span></div>
-      <div class="hs-div"></div>
-      <div class="hs"><span class="hs-n">45</span><span class="hs-l">Min / session</span></div>
-      <div class="hs-div"></div>
-      <div class="hs"><span class="hs-n">7</span><span class="hs-l">Exercises</span></div>
-    </div>
+    <p class="home-sub">Dumbbells · Home · Fat loss + muscle</p>
   </div>
+
   <!-- WHOOP card — hidden until connected -->
   <div id="whoop-card" class="whoop-card" style="display:none">
     <div class="whoop-hdr">
@@ -41,42 +34,22 @@
       <div class="whoop-metrics" id="whoop-metrics"></div>
     </div>
     <div class="whoop-note" id="whoop-note"></div>
+    <div class="whoop-graphs" id="whoop-graphs"></div>
   </div>
   <div id="whoop-connect-wrap" class="whoop-connect-wrap">
     <button class="whoop-connect-btn" onclick="whoopConnect()">Connect Whoop</button>
   </div>
 
-  <div class="day-cards">
-    <div class="day-card" onclick="openDay(0)">
-      <div class="dc-left">
-        <div class="dc-label">Day A</div>
-        <div class="dc-name">Lower body + Push</div>
-        <div class="dc-muscles">Glutes · Quads · Shoulders · Core</div>
-      </div>
-      <div class="dc-arr">→</div>
-    </div>
-    <div class="day-card" onclick="openDay(1)">
-      <div class="dc-left">
-        <div class="dc-label">Day B</div>
-        <div class="dc-name">Lower body + Pull</div>
-        <div class="dc-muscles">Hamstrings · Back · Chest · Arms</div>
-      </div>
-      <div class="dc-arr">→</div>
-    </div>
-    <div class="day-card" onclick="openDay(2)">
-      <div class="dc-left">
-        <div class="dc-label">Day C</div>
-        <div class="dc-name">Full body + Core</div>
-        <div class="dc-muscles">Full body · Core · Balance · Stability</div>
-      </div>
-      <div class="dc-arr">→</div>
+  <!-- Generate / Today's workout -->
+  <div class="generate-section">
+    <div id="today-workout-card" style="display:none"></div>
+    <button id="generate-btn" class="generate-btn" onclick="generateWorkout()">Generate Today's Workout</button>
+    <div id="generate-loading" class="generate-loading" style="display:none">
+      <div class="generate-spinner"></div>
+      <span>Designing your workout...</span>
     </div>
   </div>
-  <div class="science-strip">
-    <div class="sci-item">🔬 Progressive overload</div>
-    <div class="sci-item">⚡ Compound-first order</div>
-    <div class="sci-item">🔥 EPOC metabolic boost</div>
-  </div>
+
   <div class="home-cal-row" onclick="openCalendar()">
     <span class="home-cal-label">Workout log</span>
     <span class="home-cal-arr">→</span>
@@ -191,9 +164,10 @@
   </div>
   <div class="cal-grid" id="cal-grid"></div>
   <div class="cal-legend">
-    <div class="cal-leg-item"><span class="cal-badge cal-badge--A">A</span>Lower body + Push</div>
-    <div class="cal-leg-item"><span class="cal-badge cal-badge--B">B</span>Lower body + Pull</div>
-    <div class="cal-leg-item"><span class="cal-badge cal-badge--C">C</span>Full body + Core</div>
+    <div class="cal-leg-item"><span class="cal-badge cal-badge--AI">✓</span>AI Workout</div>
+    <div class="cal-leg-item"><span class="cal-badge cal-badge--A">A</span>Preset Day A</div>
+    <div class="cal-leg-item"><span class="cal-badge cal-badge--B">B</span>Preset Day B</div>
+    <div class="cal-leg-item"><span class="cal-badge cal-badge--C">C</span>Preset Day C</div>
   </div>
 </div>
 

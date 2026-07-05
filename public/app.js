@@ -58,6 +58,9 @@ function switchLevel(btn, level) {
   });
 }
 
+// ── Whoop global ─────────────────────────────────────────────
+let _whoopData = null;
+
 // ── Workout State ─────────────────────────────────────────────
 let _exIdx = 0;
 let _setIdx = 0;
@@ -134,12 +137,13 @@ function renderExercise() {
     document.getElementById('wk-rep-num').textContent = '0';
   }
 
-  const svg = ExerciseSVGs[ex.svgFn] ? ExerciseSVGs[ex.svgFn]() : '';
+  const svg        = ex.svgFn && ExerciseSVGs[ex.svgFn] ? ExerciseSVGs[ex.svgFn]() : '';
+  const phaseLabel = ex.phase || (ex.muscles?.[0] ?? '');
   document.getElementById('wk-body').innerHTML = `
-    <div class="wk-phase">${ex.phase}</div>
+    <div class="wk-phase">${phaseLabel}</div>
     <div class="wk-ex-name">${ex.name}</div>
     <div class="wk-ex-target">${ex.sets} sets × ${ex.reps}</div>
-    <div class="wk-fig-large"><div class="wk-fig-bg">${svg}</div></div>
+    ${svg ? `<div class="wk-fig-large"><div class="wk-fig-bg">${svg}</div></div>` : ''}
     <div class="wk-cue-box">
       <div class="wk-cue-label">Form cue</div>
       <div class="wk-cue-text">${ex.cue}</div>
@@ -170,7 +174,7 @@ function doneSet() {
   weights[ex.name] = _weight;
   localStorage.setItem('ff_weights', JSON.stringify(weights));
 
-  const histKey = `${today()}_${day.id}`;
+  const histKey = `${today()}_${day.id || 'AI'}`;
   const hist    = JSON.parse(localStorage.getItem('ff_history') || '{}');
   if (!hist[histKey]) hist[histKey] = [];
   hist[histKey].push({ exercise: ex.name, set: _setIdx + 1, reps: isTimed(ex) ? ex.reps : _reps, weight: _weight });
@@ -203,7 +207,7 @@ function confirmQuit() {
     clearInterval(_elapsedInterval);
     clearInterval(_restInterval);
     clearInterval(_timerInterval);
-    show('s-day');
+    show(_currentDay?.id === 'AI' ? 's-home' : 's-day');
   }
 }
 
@@ -249,18 +253,26 @@ function skipRest() {
 function finishWorkout() {
   clearInterval(_elapsedInterval);
   clearInterval(_restInterval);
-  logWorkout(_currentDay.id);
 
+  const day       = _currentDay;
   const secs      = Math.floor((Date.now() - _startTime) / 1000);
   const mins      = Math.floor(secs / 60);
-  const day       = _currentDay;
   const totalSets = day.exercises.reduce((a, e) => a + e.sets, 0);
+  const muscles   = [...new Set(day.exercises.flatMap(e => e.muscles || []))];
+
+  logWorkout({
+    id:      day.id || 'AI',
+    name:    day.name,
+    focus:   day.focus,
+    muscles,
+  });
 
   document.getElementById('done-stats').innerHTML = `
     <div class="done-stat">Duration: <strong>${mins} min</strong></div>
     <div class="done-stat">Exercises: <strong>${day.exercises.length}</strong></div>
     <div class="done-stat">Sets completed: <strong>${totalSets}</strong></div>
-    <div class="done-stat">Session: <strong>${day.name} — ${day.focus}</strong></div>`;
+    <div class="done-stat">Session: <strong>${day.name} — ${day.focus}</strong></div>
+    ${muscles.length ? `<div class="done-stat">Muscles: <strong>${muscles.join(', ')}</strong></div>` : ''}`;
 
   show('s-done');
 }
@@ -274,9 +286,11 @@ function today() {
   return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
 }
 
-function logWorkout(dayId) {
+function logWorkout(info) {
   const log = JSON.parse(localStorage.getItem('ff_log') || '{}');
-  log[today()] = dayId;
+  log[today()] = typeof info === 'string'
+    ? { id: info, name: info, focus: '', muscles: [] }
+    : info;
   localStorage.setItem('ff_log', JSON.stringify(log));
 }
 
@@ -308,11 +322,13 @@ function renderCalendar() {
   for (let i = 0; i < startDow; i++) html += '<div class="cal-cell cal-cell--empty"></div>';
   for (let d = 1; d <= daysInMo; d++) {
     const ds     = `${_calYear}-${String(_calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const logged = log[ds];
-    const cls    = ['cal-cell', ds === todayStr ? 'cal-today' : '', logged ? 'cal-logged' : ''].filter(Boolean).join(' ');
-    html += `<div class="${cls}">
+    const logged    = log[ds];
+    const loggedId  = logged ? (typeof logged === 'object' ? logged.id   : logged) : null;
+    const loggedTip = logged ? (typeof logged === 'object' ? `${logged.name}${logged.muscles?.length ? ' · ' + logged.muscles.join(', ') : ''}` : logged) : '';
+    const cls       = ['cal-cell', ds === todayStr ? 'cal-today' : '', loggedId ? 'cal-logged' : ''].filter(Boolean).join(' ');
+    html += `<div class="${cls}"${loggedTip ? ` title="${loggedTip}"` : ''}>
       <span class="cal-day-num">${d}</span>
-      ${logged ? `<span class="cal-badge cal-badge--${logged}">${logged}</span>` : ''}
+      ${loggedId ? `<span class="cal-badge cal-badge--${loggedId}">${loggedId === 'AI' ? '✓' : loggedId}</span>` : ''}
     </div>`;
   }
   document.getElementById('cal-grid').innerHTML = html;
@@ -327,6 +343,7 @@ function whoopDisconnect() {
   ['whoop_access_token','whoop_refresh_token','whoop_expires_at'].forEach(k => localStorage.removeItem(k));
   document.getElementById('whoop-card').style.display = 'none';
   document.getElementById('whoop-connect-wrap').style.display = 'block';
+  _whoopData = null;
 }
 
 async function whoopGetToken() {
@@ -350,6 +367,28 @@ async function whoopGetToken() {
   return token;
 }
 
+function renderSparkline(values, color, label, unit) {
+  if (!values || values.length < 2) return '';
+  const W = 70, H = 36, pad = 4;
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = max - min || 1;
+  const pts = values.map((v, i) => {
+    const x = pad + (i / (values.length - 1)) * (W - pad * 2);
+    const y = H - pad - ((v - min) / range) * (H - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const last  = pts[pts.length - 1].split(',');
+  const val   = Math.round(values[values.length - 1]);
+  return `<div class="sparkline-wrap">
+    <div class="sparkline-label">${label}</div>
+    <svg viewBox="0 0 ${W} ${H}" class="sparkline-svg">
+      <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+      <circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${color}"/>
+    </svg>
+    <div class="sparkline-val" style="color:${color}">${val}${unit}</div>
+  </div>`;
+}
+
 async function whoopLoad() {
   const token = await whoopGetToken();
   if (!token) return;
@@ -358,8 +397,10 @@ async function whoopLoad() {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) return;
-  const { recovery, cycle, sleep } = await res.json();
+  const data = await res.json();
+  _whoopData = data;
 
+  const { recovery, cycle, sleep, history } = data;
   const strain = cycle?.score?.strain?.toFixed(1);
   const slp    = sleep?.score?.sleep_performance_percentage;
 
@@ -369,31 +410,117 @@ async function whoopLoad() {
     const score = Math.round(recovery.score.recovery_score);
     const hrv   = Math.round(recovery.score.hrv_rmssd_milli);
     const rhr   = Math.round(recovery.score.resting_heart_rate);
-    color    = score >= 67 ? '#4ade80' : score >= 34 ? '#facc15' : '#f87171';
-    note     = score >= 67 ? 'Good to train hard today.' : score < 34 ? 'Consider a lighter session or rest.' : 'Moderate effort recommended.';
+    color     = score >= 67 ? '#4ade80' : score >= 34 ? '#facc15' : '#f87171';
+    note      = score >= 67 ? 'Good to train hard today.' : score < 34 ? 'Consider a lighter session or rest.' : 'Moderate effort recommended.';
     scoreText = String(score);
-    dateStr  = new Date(recovery.created_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-    metrics  = `<span>HRV ${hrv}ms</span><span>RHR ${rhr}bpm</span>` +
-               (strain ? `<span>Strain ${strain}</span>` : '') +
-               (slp    ? `<span>Sleep ${Math.round(slp)}%</span>` : '');
+    dateStr   = new Date(recovery.created_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    metrics   = `<span>HRV ${hrv}ms</span><span>RHR ${rhr}bpm</span>` +
+                (strain ? `<span>Strain ${strain}</span>` : '') +
+                (slp    ? `<span>Sleep ${Math.round(slp)}%</span>` : '');
   } else {
     color     = '#94a3b8';
-    note      = 'Recovery score not yet calculated — check back after your next sleep.';
+    note      = 'Recovery not yet scored — check back after your next sleep.';
     scoreText = '–';
     dateStr   = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-    metrics   = (strain ? `<span>Strain ${strain}</span>` : '') +
-                (slp    ? `<span>Sleep ${Math.round(slp)}%</span>` : '') ||
-                '<span>Wear your Whoop overnight for full metrics</span>';
+    const bits = [];
+    if (strain) bits.push(`<span>Strain ${strain}</span>`);
+    if (slp)    bits.push(`<span>Sleep ${Math.round(slp)}%</span>`);
+    metrics = bits.join('') || '<span>Wear Whoop overnight for full metrics</span>';
   }
 
-  document.getElementById('whoop-score').textContent = scoreText;
-  document.getElementById('whoop-score').style.color = color;
-  document.getElementById('whoop-date').textContent  = dateStr;
-  document.getElementById('whoop-metrics').innerHTML = metrics;
-  document.getElementById('whoop-note').textContent  = note;
-  document.getElementById('whoop-note').style.color  = color;
-  document.getElementById('whoop-card').style.display        = 'block';
+  document.getElementById('whoop-score').textContent        = scoreText;
+  document.getElementById('whoop-score').style.color        = color;
+  document.getElementById('whoop-date').textContent         = dateStr;
+  document.getElementById('whoop-metrics').innerHTML        = metrics;
+  document.getElementById('whoop-note').textContent         = note;
+  document.getElementById('whoop-note').style.color         = color;
+  document.getElementById('whoop-card').style.display       = 'block';
   document.getElementById('whoop-connect-wrap').style.display = 'none';
+
+  // Sparkline graphs
+  if (history) {
+    const recovVals  = [...(history.recoveries || [])].reverse().map(r => r.score?.recovery_score).filter(v => v != null);
+    const hrvVals    = [...(history.recoveries || [])].reverse().map(r => r.score?.hrv_rmssd_milli).filter(v => v != null);
+    const strainVals = [...(history.cycles     || [])].reverse().map(c => c.score?.strain).filter(v => v != null);
+    const sleepVals  = [...(history.sleeps     || [])].reverse().map(s => s.score?.sleep_performance_percentage).filter(v => v != null);
+
+    document.getElementById('whoop-graphs').innerHTML =
+      renderSparkline(recovVals,  color,     'Recovery', '%') +
+      renderSparkline(hrvVals,    '#818cf8', 'HRV',      'ms') +
+      renderSparkline(strainVals, '#fb923c', 'Strain',   '') +
+      renderSparkline(sleepVals,  '#34d399', 'Sleep',    '%');
+  }
+}
+
+// ── AI Workout Generation ─────────────────────────────────────
+async function generateWorkout() {
+  document.getElementById('generate-btn').style.display     = 'none';
+  document.getElementById('generate-loading').style.display = 'flex';
+
+  try {
+    const log     = JSON.parse(localStorage.getItem('ff_log') || '{}');
+    const history = Object.entries(log)
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .slice(0, 7)
+      .map(([date, info]) => ({
+        date,
+        id:      typeof info === 'object' ? info.id      : info,
+        name:    typeof info === 'object' ? info.name    : info,
+        muscles: typeof info === 'object' ? (info.muscles || []) : [],
+      }));
+
+    const res = await fetch('/.netlify/functions/generate-workout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ recovery: _whoopData?.recovery ?? null, history }),
+    });
+
+    if (!res.ok) throw new Error('Generation failed');
+    const workout = await res.json();
+    if (workout.error) throw new Error(workout.error);
+
+    localStorage.setItem('ff_today_workout', JSON.stringify({ date: today(), workout }));
+    showTodayWorkout(workout);
+  } catch (err) {
+    document.getElementById('generate-btn').style.display     = 'block';
+    document.getElementById('generate-loading').style.display = 'none';
+    alert('Could not generate workout: ' + err.message);
+  }
+}
+
+function showTodayWorkout(workout) {
+  document.getElementById('generate-btn').style.display     = 'none';
+  document.getElementById('generate-loading').style.display = 'none';
+
+  const intColor = workout.intensity === 'full' ? '#4ade80'
+                 : workout.intensity === 'light' ? '#f87171' : '#facc15';
+  const intLabel = workout.intensity === 'full' ? 'Full intensity'
+                 : workout.intensity === 'light' ? 'Light session' : 'Moderate';
+
+  const card = document.getElementById('today-workout-card');
+  card.style.display = 'block';
+  card.innerHTML = `
+    <div class="twc-header">
+      <div>
+        <div class="twc-name">${workout.name}</div>
+        <div class="twc-focus">${workout.focus}</div>
+      </div>
+      <div class="twc-intensity" style="color:${intColor}">${intLabel}</div>
+    </div>
+    <div class="twc-exercises">
+      ${workout.exercises.map(e => `<span class="twc-ex-tag">${e.name}</span>`).join('')}
+    </div>
+    <button class="twc-start-btn" onclick="startAIWorkout()">Start workout →</button>`;
+
+  window._todayWorkout = workout;
+}
+
+function startAIWorkout() {
+  const stored  = JSON.parse(localStorage.getItem('ff_today_workout') || 'null');
+  const workout = window._todayWorkout || stored?.workout;
+  if (!workout) return;
+  _currentDay = { id: 'AI', name: workout.name, focus: workout.focus, exercises: workout.exercises };
+  startWorkout();
 }
 
 // ── Boot ──────────────────────────────────────────────────────
@@ -413,5 +540,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   show('s-home');
+
+  // Restore today's generated workout if it exists
+  const storedWorkout = JSON.parse(localStorage.getItem('ff_today_workout') || 'null');
+  if (storedWorkout?.date === today()) showTodayWorkout(storedWorkout.workout);
+
   if (localStorage.getItem('whoop_access_token')) whoopLoad();
 });
