@@ -354,30 +354,42 @@ async function whoopLoad() {
   const token = await whoopGetToken();
   if (!token) return;
 
-  const res  = await fetch('/.netlify/functions/whoop-data', {
+  const res = await fetch('/.netlify/functions/whoop-data', {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) return;
   const { recovery, cycle, sleep } = await res.json();
-  if (!recovery?.score) return;
 
-  const score  = Math.round(recovery.score.recovery_score);
-  const hrv    = Math.round(recovery.score.hrv_rmssd_milli);
-  const rhr    = Math.round(recovery.score.resting_heart_rate);
   const strain = cycle?.score?.strain?.toFixed(1);
   const slp    = sleep?.score?.sleep_performance_percentage;
-  const color  = score >= 67 ? '#4ade80' : score >= 34 ? '#facc15' : '#f87171';
-  const note   = score >= 67 ? 'Good to train hard today.' : score < 34 ? 'Consider a lighter session or rest.' : 'Moderate effort recommended.';
-  const d      = new Date(recovery.created_at);
-  const dateStr = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 
-  document.getElementById('whoop-score').textContent = score;
+  let scoreText, color, note, dateStr, metrics;
+
+  if (recovery?.score) {
+    const score = Math.round(recovery.score.recovery_score);
+    const hrv   = Math.round(recovery.score.hrv_rmssd_milli);
+    const rhr   = Math.round(recovery.score.resting_heart_rate);
+    color    = score >= 67 ? '#4ade80' : score >= 34 ? '#facc15' : '#f87171';
+    note     = score >= 67 ? 'Good to train hard today.' : score < 34 ? 'Consider a lighter session or rest.' : 'Moderate effort recommended.';
+    scoreText = String(score);
+    dateStr  = new Date(recovery.created_at).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    metrics  = `<span>HRV ${hrv}ms</span><span>RHR ${rhr}bpm</span>` +
+               (strain ? `<span>Strain ${strain}</span>` : '') +
+               (slp    ? `<span>Sleep ${Math.round(slp)}%</span>` : '');
+  } else {
+    color     = '#94a3b8';
+    note      = 'Recovery score not yet calculated — check back after your next sleep.';
+    scoreText = '–';
+    dateStr   = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    metrics   = (strain ? `<span>Strain ${strain}</span>` : '') +
+                (slp    ? `<span>Sleep ${Math.round(slp)}%</span>` : '') ||
+                '<span>Wear your Whoop overnight for full metrics</span>';
+  }
+
+  document.getElementById('whoop-score').textContent = scoreText;
   document.getElementById('whoop-score').style.color = color;
   document.getElementById('whoop-date').textContent  = dateStr;
-  document.getElementById('whoop-metrics').innerHTML =
-    `<span>HRV ${hrv}ms</span><span>RHR ${rhr}bpm</span>` +
-    (strain ? `<span>Strain ${strain}</span>` : '') +
-    (slp    ? `<span>Sleep ${Math.round(slp)}%</span>` : '');
+  document.getElementById('whoop-metrics').innerHTML = metrics;
   document.getElementById('whoop-note').textContent  = note;
   document.getElementById('whoop-note').style.color  = color;
   document.getElementById('whoop-card').style.display        = 'block';
