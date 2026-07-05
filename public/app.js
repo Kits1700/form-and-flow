@@ -576,17 +576,30 @@ function regenWorkout() {
 
 // ── Boot ──────────────────────────────────────────────────────
 // ── Steps logger ──────────────────────────────────────────────
+function stepsSetMode(mode) {
+  const wrap = document.getElementById('steps-input-wrap');
+  const hint = document.getElementById('steps-edit-hint');
+  if (mode === 'edit') {
+    wrap.style.display = 'flex';
+    if (hint) hint.style.display = 'none';
+    document.getElementById('steps-input').focus();
+  } else {
+    wrap.style.display = 'none';
+    if (hint) hint.style.display = 'block';
+  }
+}
+
 function loadSteps() {
   const store = JSON.parse(localStorage.getItem('ff_steps') || '{}');
   const val   = store[today()];
   const valEl = document.getElementById('steps-val');
-  const inputEl = document.getElementById('steps-input');
+  document.getElementById('steps-input').value = val ?? '';
   if (val != null) {
     valEl.textContent = val.toLocaleString();
-    inputEl.value = val;
+    stepsSetMode('display');
   } else {
     valEl.textContent = '—';
-    inputEl.value = '';
+    stepsSetMode('edit');
   }
 }
 
@@ -599,6 +612,7 @@ function saveSteps() {
   localStorage.setItem('ff_steps', JSON.stringify(store));
   document.getElementById('steps-val').textContent = n.toLocaleString();
   input.blur();
+  stepsSetMode('display');
 }
 
 document.addEventListener('DOMContentLoaded', async () => {

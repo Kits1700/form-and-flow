@@ -43,14 +43,15 @@
   </div>
 
   <!-- Steps logger -->
-  <div class="steps-row" id="steps-row">
+  <div class="steps-row" id="steps-row" onclick="stepsSetMode('edit')">
     <div class="steps-left">
       <span class="steps-label">Steps today</span>
       <span class="steps-val" id="steps-val">—</span>
+      <span class="steps-edit-hint" id="steps-edit-hint" style="display:none">Tap to edit</span>
     </div>
     <div class="steps-right" id="steps-input-wrap">
-      <input class="steps-input" id="steps-input" type="number" inputmode="numeric" placeholder="0" min="0" max="99999" />
-      <button class="steps-save-btn" onclick="saveSteps()">Log</button>
+      <input class="steps-input" id="steps-input" type="number" inputmode="numeric" placeholder="0" min="0" max="99999" onclick="event.stopPropagation()" />
+      <button class="steps-save-btn" onclick="event.stopPropagation(); saveSteps()">Log</button>
     </div>
   </div>
 
