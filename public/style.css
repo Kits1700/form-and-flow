@@ -34,43 +34,24 @@ body { font-family: 'Mulish', sans-serif; color: var(--text); -webkit-font-smoot
 .hs-div { width: 1px; height: 32px; background: var(--border2); }
 
 /* ── Whoop card (home) ── */
-.whoop-card { margin: 0 1.25rem 0.75rem; border: 1px solid #1e1e1e; border-radius: var(--r); overflow: hidden; }
-.whoop-hdr { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #1a1a1a; }
+.whoop-card { margin: 0 1.25rem 0.75rem; border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; }
+.whoop-hdr { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
 .whoop-logo { font-size: 11px; font-weight: 900; background: #fff; color: #000; width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .whoop-title { font-size: 11px; font-weight: 700; color: var(--muted); flex: 1; }
-.whoop-hdr-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
-.whoop-trends-btn { background: none; border: none; font-size: 11px; font-weight: 700; color: #4ade80; cursor: pointer; font-family: inherit; padding: 0; }
-.whoop-disconnect { background: none; border: none; font-size: 10px; color: #333; cursor: pointer; font-family: inherit; }
+.whoop-disconnect { margin-left: auto; background: none; border: none; font-size: 10px; color: #333; cursor: pointer; font-family: inherit; }
 .whoop-disconnect:hover { color: var(--muted); }
-.whoop-note { padding: 10px 14px 4px; font-size: 11.5px; font-weight: 600; }
+.whoop-note { padding: 10px 14px 4px; font-size: 11.5px; font-weight: 600; color: var(--muted); }
 .whoop-connect-wrap { padding: 0 1.25rem 0.75rem; }
-.whoop-connect-btn { width: 100%; padding: 11px; background: none; border: 1px solid #222; border-radius: 10px; color: var(--muted); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
-.whoop-connect-btn:hover { border-color: #333; color: var(--text); }
+.whoop-connect-btn { width: 100%; padding: 11px; background: none; border: 1px solid var(--border2); border-radius: 10px; color: var(--muted); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.whoop-connect-btn:hover { border-color: #444; color: var(--text); }
 
 /* ── Whoop metric cards ── */
-.whoop-metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 14px 14px; }
-.wm-card { background: var(--surface); border-radius: 10px; padding: 12px 12px 12px 14px; position: relative; overflow: hidden; }
-.wm-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 2px 0 0 2px; }
-.wm-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #555; margin-bottom: 6px; }
-.wm-val-row { display: flex; align-items: baseline; gap: 3px; }
-.wm-value { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
-.wm-unit { font-size: 11px; color: #555; font-weight: 600; }
-
-/* ── Whoop trends screen ── */
-.whoop-trends-hdr { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 1px solid var(--border); padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; }
-.whoop-trends-title { font-size: 15px; font-weight: 800; }
-.whoop-trends-body { padding: 1.25rem; }
-.wt-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
-.wt-tab { background: none; border: 1px solid var(--border2); border-radius: 8px; color: var(--muted); font-family: inherit; font-size: 13px; font-weight: 700; padding: 6px 16px; cursor: pointer; }
-.wt-tab.active { background: var(--text); color: var(--bg); border-color: var(--text); }
-.wg-svg { width: 100%; height: auto; display: block; margin-bottom: 16px; }
-.wg-date { font-size: 7px; fill: #4a4a4a; }
-.wg-val  { font-size: 7px; fill: #4a4a4a; }
-.wt-empty { color: var(--muted); font-size: 13px; padding: 20px 0; }
-.wt-log-list { display: flex; flex-direction: column; gap: 1px; border-top: 1px solid var(--border); }
-.wt-row { padding: 12px 0; border-bottom: 1px solid var(--border); }
-.wt-row-date { font-size: 12px; font-weight: 700; color: #888; margin-bottom: 6px; }
-.wt-row-metrics { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; font-weight: 700; }
+.whoop-metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-top: 1px solid var(--border); }
+.wm-card { background: var(--bg); padding: 14px; }
+.wm-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.wm-val-row { display: flex; align-items: baseline; gap: 4px; }
+.wm-value { font-size: 26px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.wm-unit { font-size: 11px; color: var(--muted); font-weight: 600; }
 
 .day-cards { padding: 1.5rem 1.25rem; display: flex; flex-direction: column; gap: 10px; }
 .day-card { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 1.25rem; border: 1px solid var(--border); border-radius: var(--r); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
@@ -244,14 +225,14 @@ body { font-family: 'Mulish', sans-serif; color: var(--text); -webkit-font-smoot
 .twc-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; gap: 12px; }
 .twc-name { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 2px; }
 .twc-focus { font-size: 12px; color: var(--muted); }
-.twc-intensity { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+.twc-intensity { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
 .twc-exercises { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .twc-ex-tag { font-size: 11px; background: var(--dim); color: #888; padding: 5px 10px; border-radius: 6px; }
 .twc-start-btn { width: 100%; padding: 14px; background: #fff; color: #000; border: none; border-radius: 10px; font-family: inherit; font-size: 0.95rem; font-weight: 800; cursor: pointer; }
 .twc-start-btn:hover { opacity: 0.85; }
 
 /* ── Calendar AI badge ── */
-.cal-badge--AI { background: #6366f1; color: #fff; }
+.cal-badge--AI { background: var(--text); color: var(--bg); }
 
 /* ── Whoop graph ── */
 .wg-tabs { display: flex; gap: 6px; margin-bottom: 10px; }

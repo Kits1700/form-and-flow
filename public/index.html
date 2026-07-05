@@ -23,10 +23,7 @@
     <div class="whoop-hdr">
       <span class="whoop-logo">W</span>
       <span class="whoop-title" id="whoop-date">Today</span>
-      <div class="whoop-hdr-right">
-        <button class="whoop-trends-btn" onclick="openWhoop()">Trends →</button>
-        <button class="whoop-disconnect" onclick="whoopDisconnect()">Disconnect</button>
-      </div>
+      <button class="whoop-disconnect" onclick="whoopDisconnect()">Disconnect</button>
     </div>
     <div class="whoop-note" id="whoop-note"></div>
     <div class="whoop-metric-grid" id="whoop-metric-grid"></div>
@@ -166,22 +163,6 @@
   </div>
 </div>
 
-<!-- WHOOP TRENDS ──────────────────────────────── -->
-<div id="s-whoop" class="screen">
-  <div class="whoop-trends-hdr">
-    <button class="back-btn" onclick="show('s-home')">←</button>
-    <span class="whoop-trends-title">Whoop Trends</span>
-    <div style="width:36px"></div>
-  </div>
-  <div class="whoop-trends-body">
-    <div class="wt-tabs">
-      <button class="wt-tab active" onclick="switchTrendPeriod('7d', this)">7 Days</button>
-      <button class="wt-tab" onclick="switchTrendPeriod('30d', this)">30 Days</button>
-    </div>
-    <div id="wt-graph"></div>
-    <div id="wt-log"></div>
-  </div>
-</div>
 
 <script src="workout.js"></script>
 <script src="app.js"></script>
