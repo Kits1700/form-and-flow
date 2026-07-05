@@ -171,6 +171,17 @@ body { font-family: 'Mulish', sans-serif; color: var(--text); -webkit-font-smoot
 .done-stat strong { color: var(--text); }
 
 /* ── Home calendar row ── */
+.steps-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-top: 1px solid var(--border); gap: 1rem; }
+.steps-left { display: flex; flex-direction: column; gap: 2px; }
+.steps-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.steps-val { font-size: 22px; font-weight: 200; color: var(--text); line-height: 1; }
+.steps-right { display: flex; align-items: center; gap: 8px; }
+.steps-input { background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); font-family: inherit; font-size: 15px; font-weight: 400; padding: 8px 10px; width: 90px; text-align: right; -moz-appearance: textfield; }
+.steps-input::-webkit-outer-spin-button, .steps-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.steps-input:focus { outline: none; border-color: var(--text); }
+.steps-save-btn { background: var(--text); color: var(--bg); border: none; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 14px; cursor: pointer; white-space: nowrap; }
+.steps-save-btn:active { opacity: 0.8; }
+
 .home-cal-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-top: 1px solid var(--border); cursor: pointer; }
 .home-cal-row:hover { background: var(--surface); }
 .home-cal-label { font-size: 13px; font-weight: 600; }

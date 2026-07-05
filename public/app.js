@@ -535,6 +535,32 @@ function regenWorkout() {
 }
 
 // ── Boot ──────────────────────────────────────────────────────
+// ── Steps logger ──────────────────────────────────────────────
+function loadSteps() {
+  const store = JSON.parse(localStorage.getItem('ff_steps') || '{}');
+  const val   = store[today()];
+  const valEl = document.getElementById('steps-val');
+  const inputEl = document.getElementById('steps-input');
+  if (val != null) {
+    valEl.textContent = val.toLocaleString();
+    inputEl.value = val;
+  } else {
+    valEl.textContent = '—';
+    inputEl.value = '';
+  }
+}
+
+function saveSteps() {
+  const input = document.getElementById('steps-input');
+  const n = parseInt(input.value, 10);
+  if (isNaN(n) || n < 0) return;
+  const store = JSON.parse(localStorage.getItem('ff_steps') || '{}');
+  store[today()] = n;
+  localStorage.setItem('ff_steps', JSON.stringify(store));
+  document.getElementById('steps-val').textContent = n.toLocaleString();
+  input.blur();
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   // Handle OAuth callback (?code= in URL)
   const params = new URLSearchParams(window.location.search);
@@ -557,4 +583,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (storedWorkout?.date === today()) showTodayWorkout(storedWorkout.workout);
 
   if (localStorage.getItem('whoop_access_token')) whoopLoad();
+  loadSteps();
 });
