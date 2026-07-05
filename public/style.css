@@ -205,12 +205,12 @@ body { font-family: 'Mulish', sans-serif; color: var(--text); -webkit-font-smoot
 
 /* ── Activity feed ── */
 .cal-feed { margin: 0.5rem 1rem 2rem; display: flex; flex-direction: column; border-top: 1px solid var(--border); }
-.cal-entry { padding: 1rem 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
-.cal-entry-date { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
-.cal-entry-row { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
-.cal-entry-key { font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; }
-.cal-entry-val { font-size: 13px; font-weight: 400; color: var(--text); text-align: right; }
-.cal-feed-empty { font-size: 13px; color: var(--muted); padding: 1.5rem 0; text-align: center; }
+.cal-entry { padding: 0.65rem 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+.cal-entry-date { font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.cal-entry-row { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
+.cal-entry-key { font-size: 11px; font-weight: 500; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+.cal-entry-val { font-size: 11px; font-weight: 400; color: var(--text); text-align: right; }
+.cal-feed-empty { font-size: 12px; color: var(--muted); padding: 1.25rem 0; text-align: center; }
 
 /* ── Done screen calendar button ── */
 .done-cal-btn { background: none; border: 1px solid var(--border2); border-radius: var(--r); color: var(--muted); font-family: inherit; font-size: 14px; font-weight: 600; padding: 14px; cursor: pointer; width: 100%; }
