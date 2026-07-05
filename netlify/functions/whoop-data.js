@@ -1,3 +1,8 @@
+const safeJson = async (res) => {
+  const text = await res.text();
+  try { return JSON.parse(text); } catch { return null; }
+};
+
 exports.handler = async (event) => {
   try {
     const token = (event.headers.authorization || '').replace('Bearer ', '');
@@ -13,20 +18,20 @@ exports.handler = async (event) => {
     ]);
 
     const [recovery, cycle, sleep, workout] = await Promise.all([
-      recoveryRes.json(),
-      cycleRes.json(),
-      sleepRes.json(),
-      workoutRes.json(),
+      safeJson(recoveryRes),
+      safeJson(cycleRes),
+      safeJson(sleepRes),
+      safeJson(workoutRes),
     ]);
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        recovery: recovery.records?.[0] ?? null,
-        cycle:    cycle.records?.[0]    ?? null,
-        sleep:    sleep.records?.[0]    ?? null,
-        workouts: workout.records       ?? [],
+        recovery: recovery?.records?.[0] ?? null,
+        cycle:    cycle?.records?.[0]    ?? null,
+        sleep:    sleep?.records?.[0]    ?? null,
+        workouts: workout?.records       ?? [],
       }),
     };
   } catch (err) {
