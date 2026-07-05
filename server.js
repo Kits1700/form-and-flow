@@ -74,6 +74,61 @@ Return JSON with this exact shape (all string values max 12 words):
   }
 });
 
+// ── Local proxy for Netlify generate-workout function ─────────
+app.post('/.netlify/functions/generate-workout', async (req, res) => {
+  try {
+    const { recovery, history } = req.body || {};
+    const recoveryScore = recovery?.score?.recovery_score != null
+      ? Math.round(recovery.score.recovery_score) : null;
+    const hrv = recovery?.score?.hrv_rmssd_milli != null
+      ? Math.round(recovery.score.hrv_rmssd_milli) : null;
+    const rhr = recovery?.score?.resting_heart_rate != null
+      ? Math.round(recovery.score.resting_heart_rate) : null;
+    const intensity = recoveryScore === null ? 'moderate'
+      : recoveryScore >= 67 ? 'full'
+      : recoveryScore >= 34 ? 'moderate'
+      : 'light';
+    const historyStr = Array.isArray(history) && history.length
+      ? history.slice(0, 7).map(h => `${h.date}: ${h.name || h.id}${h.muscles?.length ? ` — muscles: ${h.muscles.join(', ')}` : ''}`).join('\n')
+      : 'No recent history';
+
+    const prompt = `You are a personal trainer designing a dumbbell home workout.
+
+USER PROFILE:
+- 26F, 172cm, 63kg
+- Goal: fat loss + muscle gain
+- Equipment: two dumbbells at home (any weight)
+- Level: beginner/intermediate
+- Health: myasthenia gravis in remission — rest MUST be 90-120s minimum, never train to failure
+
+TODAY'S WHOOP RECOVERY:
+${recoveryScore !== null
+  ? `- Recovery: ${recoveryScore}% → ${intensity} intensity session\n- HRV: ${hrv}ms\n- RHR: ${rhr}bpm`
+  : '- Recovery data unavailable → moderate intensity'}
+
+RECENT WORKOUT HISTORY (avoid same muscles within 48h):
+${historyStr}
+
+RULES:
+- light = 3-4 exercises, bodyweight or very light, mobility + core focus
+- moderate = 5-6 exercises, standard compound + accessory mix
+- full = 6-7 exercises, compound-first, heavier loads
+- All exercises: dumbbells or bodyweight only
+- science: one plain-English sentence explaining WHY it works for fat loss/muscle
+- cue: one sentence with the single most important form tip
+- svgFn: pick the closest match from this exact list — squat, hinge, press, row, floorpress, bridge, curl, lateral, lunge, plank, kickback, deadbug, stepup
+
+Return ONLY valid JSON, no markdown:
+{"name":"Short session name","focus":"Main muscles","intensity":"${intensity}","exercises":[{"name":"Exercise name","sets":3,"reps":"10-12","rest":90,"muscles":["Primary","Secondary"],"cue":"Key form tip","science":"Plain English why","svgFn":"squat"}]}`;
+
+    const data = await claude(prompt, 2048);
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(3000, () => {
   console.log('Running → http://localhost:3000');
 });
