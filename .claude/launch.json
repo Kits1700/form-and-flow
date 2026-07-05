@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "workout-planner",
+      "runtimeExecutable": "/usr/local/bin/node",
+      "runtimeArgs": ["/Users/saikeerthanaarun/Desktop/adaptive-workout-planner/server.js"],
+      "port": 3000
+    }
+  ]
+}

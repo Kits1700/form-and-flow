@@ -1,0 +1,177 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #000;
+  --surface: #0d0d0d;
+  --border: #1a1a1a;
+  --border2: #2a2a2a;
+  --text: #fff;
+  --muted: #4a4a4a;
+  --dim: #2a2a2a;
+  --accent: #fff;
+  --r: 12px;
+}
+
+html, body { min-height: 100%; background: var(--bg); overflow-x: hidden; }
+body { font-family: 'Mulish', sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+
+/* ── Screens ── */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: block; }
+.back-btn { background: none; border: 1px solid var(--border2); border-radius: 8px; color: var(--muted); width: 36px; height: 36px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.back-btn:hover { color: var(--text); }
+.cta { display: block; width: 100%; padding: 16px; background: var(--text); color: var(--bg); border: none; border-radius: var(--r); font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+
+/* ── HOME ── */
+.home-hero { padding: 3rem 1.5rem 2rem; background: linear-gradient(180deg, #0a0a0a 0%, #000 100%); }
+.home-logo { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.5rem; }
+.home-title { font-size: 32px; font-weight: 300; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 0.4rem; }
+.home-sub { font-size: 13px; color: var(--muted); margin-bottom: 2rem; }
+.home-stats { display: flex; align-items: center; gap: 0; }
+.hs { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; }
+.hs-n { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+.hs-l { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.hs-div { width: 1px; height: 32px; background: var(--border2); }
+
+.day-cards { padding: 1.5rem 1.25rem; display: flex; flex-direction: column; gap: 10px; }
+.day-card { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 1.25rem; border: 1px solid var(--border); border-radius: var(--r); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.day-card:hover { border-color: var(--border2); background: var(--surface); }
+.dc-label { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+.dc-name { font-size: 16px; font-weight: 600; margin-bottom: 3px; }
+.dc-muscles { font-size: 12px; color: var(--muted); }
+.dc-arr { font-size: 20px; color: var(--muted); }
+
+.science-strip { display: flex; gap: 10px; padding: 0 1.25rem 2.5rem; flex-wrap: wrap; }
+.sci-item { font-size: 11px; font-weight: 600; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 5px 12px; }
+
+/* ── DAY VIEW ── */
+.day-header { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 1px solid var(--border); padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem; }
+.day-hdr-label { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.day-hdr-name { font-size: 15px; font-weight: 600; }
+.start-day-btn { margin-left: auto; background: var(--text); color: var(--bg); border: none; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 700; padding: 8px 16px; cursor: pointer; white-space: nowrap; }
+
+.exercise-list { padding: 0 0 4rem; }
+
+/* ── Exercise Card ── */
+.ex-card { padding: 1.5rem 1.25rem; border-bottom: 1px solid var(--border); }
+.ex-card-top { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
+.ex-fig-wrap { width: 90px; height: 90px; flex-shrink: 0; background: var(--surface); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.ex-fig-wrap svg { width: 80px; height: 80px; }
+.ex-info { flex: 1; }
+.ex-num { font-size: 10px; font-weight: 800; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px; }
+.ex-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.01em; }
+.ex-sets-reps { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.ex-muscles-row { display: flex; gap: 4px; flex-wrap: wrap; }
+.ex-muscle-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: var(--dim); color: #888; }
+.ex-cue { font-size: 13px; color: #555; line-height: 1.6; }
+.ex-watch-link { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 700; color: var(--muted); text-decoration: none; border: 1px solid var(--border); border-radius: 4px; padding: 3px 10px; }
+.ex-watch-link:hover { color: var(--text); border-color: var(--border2); }
+
+/* ── Level tabs ── */
+.ex-levels { margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.ex-lvl-tabs { display: flex; border-bottom: 1px solid var(--border); }
+.ex-lvl-btn { flex: 1; padding: 8px; background: none; border: none; border-right: 1px solid var(--border); font-family: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); cursor: pointer; transition: color 0.15s, background 0.15s; }
+.ex-lvl-btn:last-child { border-right: none; }
+.ex-lvl-btn.active { color: var(--text); background: var(--surface); }
+.ex-lvl-pane { padding: 12px 14px; font-size: 12px; line-height: 1.65; color: #666; }
+.ex-lvl-pane strong { color: var(--text); font-weight: 700; display: block; margin-bottom: 4px; }
+.ex-lvl-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.ex-lvl-text { color: #555; }
+
+/* ── Science citation ── */
+.ex-science { margin-top: 10px; font-size: 11px; color: #444; line-height: 1.55; }
+.ex-sci-icon { margin-right: 3px; }
+.wk-science { margin: 0 1.25rem 1rem; font-size: 11px; color: #3a3a3a; line-height: 1.55; }
+
+/* ── Playlist ── */
+.playlist-card { margin: 0.75rem 1.25rem 0.25rem; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.playlist-hdr { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-bottom: 1px solid var(--border); }
+.playlist-icon { font-size: 13px; color: var(--muted); }
+.playlist-title { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.playlist-tracks { padding: 8px 0; }
+.pl-row { display: flex; flex-direction: column; padding: 5px 14px; }
+.pl-track { font-size: 12.5px; font-weight: 600; color: var(--text); line-height: 1.4; }
+.pl-artist { font-size: 10.5px; color: var(--muted); }
+
+/* ── WORKOUT ── */
+.wk-header { position: sticky; top: 0; z-index: 10; background: var(--bg); padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid var(--border); }
+.wk-progress-wrap { flex: 1; }
+.wk-progress-bar { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 4px; }
+.wk-progress-fill { height: 100%; background: var(--text); border-radius: 2px; transition: width 0.4s ease; }
+.wk-progress-text { font-size: 11px; color: var(--muted); font-weight: 600; }
+.wk-elapsed { font-size: 13px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.wk-body { padding: 1.5rem 1.25rem; }
+.wk-phase { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.wk-ex-name { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; line-height: 1.15; }
+.wk-ex-target { font-size: 14px; color: var(--muted); margin-bottom: 1.5rem; }
+.wk-fig-large { display: flex; justify-content: center; margin-bottom: 1.5rem; }
+.wk-fig-large svg { width: 160px; height: 160px; }
+.wk-fig-bg { width: 180px; height: 180px; background: var(--surface); border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+.wk-cue-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin-bottom: 1rem; }
+.wk-cue-label { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.wk-cue-text { font-size: 13px; line-height: 1.6; color: #aaa; }
+
+.wk-footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); border-top: 1px solid var(--border); padding: 1rem 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
+.wk-set-info { text-align: center; }
+.wk-set-label { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.wk-set-num { font-size: 16px; font-weight: 700; }
+.wk-counter-wrap { flex: 1; display: flex; align-items: center; justify-content: center; gap: 1.25rem; }
+.wk-minus, .wk-plus { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border2); background: var(--surface); color: var(--text); font-size: 24px; font-weight: 300; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
+.wk-rep-display { text-align: center; }
+.wk-rep-num { font-size: 42px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.wk-rep-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+.wk-done-btn { background: var(--text); color: var(--bg); border: none; border-radius: 10px; font-family: inherit; font-size: 13px; font-weight: 700; padding: 12px 16px; cursor: pointer; white-space: nowrap; }
+
+/* ── REST ── */
+.rest-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 1.5rem; padding: 2rem; }
+.rest-label { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.rest-circle { position: relative; width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; }
+.rest-ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+.rest-seconds { font-size: 52px; font-weight: 800; letter-spacing: -0.04em; }
+.rest-next { font-size: 13px; color: var(--muted); text-align: center; }
+.rest-skip { background: none; border: 1px solid var(--border2); border-radius: 10px; color: var(--muted); font-family: inherit; font-size: 13px; font-weight: 600; padding: 12px 28px; cursor: pointer; }
+.rest-skip:hover { color: var(--text); }
+
+/* ── DONE ── */
+.done-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 1rem; padding: 2rem; text-align: center; }
+.done-check { font-size: 48px; margin-bottom: 0.5rem; }
+.done-title { font-size: 28px; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 1rem; }
+.done-stats { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1.5rem; }
+.done-stat { font-size: 14px; color: var(--muted); }
+.done-stat strong { color: var(--text); }
+
+/* ── Home calendar row ── */
+.home-cal-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-top: 1px solid var(--border); cursor: pointer; }
+.home-cal-row:hover { background: var(--surface); }
+.home-cal-label { font-size: 13px; font-weight: 600; }
+.home-cal-arr { font-size: 16px; color: var(--muted); }
+
+/* ── Calendar screen ── */
+.cal-header { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 1px solid var(--border); padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; }
+.cal-nav { display: flex; align-items: center; gap: 1rem; }
+.cal-arrow { background: none; border: 1px solid var(--border2); border-radius: 8px; color: var(--text); width: 32px; height: 32px; font-size: 20px; font-weight: 300; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
+.cal-arrow:hover { background: var(--surface); }
+.cal-month-label { font-size: 15px; font-weight: 700; min-width: 148px; text-align: center; }
+.cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); padding: 1.25rem 1rem 0.5rem; }
+.cal-dow span { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-align: center; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; padding: 0.5rem 1rem; }
+.cal-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; gap: 4px; }
+.cal-day-num { font-size: 13px; font-weight: 600; color: #333; line-height: 1; }
+.cal-today { border: 1px solid var(--border2); }
+.cal-today .cal-day-num { color: var(--text); }
+.cal-logged { background: var(--surface); }
+.cal-logged .cal-day-num { color: var(--text); }
+.cal-badge { font-size: 9px; font-weight: 800; letter-spacing: 0.04em; padding: 2px 5px; border-radius: 3px; background: var(--text); color: var(--bg); line-height: 1.4; }
+.cal-legend { padding: 1.5rem 1.25rem 2rem; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--border); margin-top: 0.5rem; }
+.cal-leg-item { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
+
+/* ── Done screen calendar button ── */
+.done-cal-btn { background: none; border: 1px solid var(--border2); border-radius: var(--r); color: var(--muted); font-family: inherit; font-size: 14px; font-weight: 600; padding: 14px; cursor: pointer; width: 100%; }
+.done-cal-btn:hover { color: var(--text); }
+
+/* ── SVG Figures ── */
+.fig-stroke { stroke: rgba(255,255,255,0.9); stroke-linecap: round; stroke-linejoin: round; fill: none; }
+.fig-head { fill: rgba(255,255,255,0.9); }
+.fig-db { fill: rgba(255,255,255,0.3); rx: 1; }
+.fig-ground { stroke: rgba(255,255,255,0.1); }

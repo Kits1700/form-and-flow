@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Form & Flow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- HOME ─────────────────────────────────────── -->
+<div id="s-home" class="screen active">
+  <div class="home-hero">
+    <div class="home-logo">Form &amp; Flow</div>
+    <h1 class="home-title">Your programme.</h1>
+    <p class="home-sub">3 days a week · Dumbbells only · Fat loss + muscle</p>
+    <div class="home-stats">
+      <div class="hs"><span class="hs-n">3</span><span class="hs-l">Days / week</span></div>
+      <div class="hs-div"></div>
+      <div class="hs"><span class="hs-n">45</span><span class="hs-l">Min / session</span></div>
+      <div class="hs-div"></div>
+      <div class="hs"><span class="hs-n">7</span><span class="hs-l">Exercises</span></div>
+    </div>
+  </div>
+  <div class="day-cards">
+    <div class="day-card" onclick="openDay(0)">
+      <div class="dc-left">
+        <div class="dc-label">Day A</div>
+        <div class="dc-name">Lower body + Push</div>
+        <div class="dc-muscles">Glutes · Quads · Shoulders · Core</div>
+      </div>
+      <div class="dc-arr">→</div>
+    </div>
+    <div class="day-card" onclick="openDay(1)">
+      <div class="dc-left">
+        <div class="dc-label">Day B</div>
+        <div class="dc-name">Lower body + Pull</div>
+        <div class="dc-muscles">Hamstrings · Back · Chest · Arms</div>
+      </div>
+      <div class="dc-arr">→</div>
+    </div>
+    <div class="day-card" onclick="openDay(2)">
+      <div class="dc-left">
+        <div class="dc-label">Day C</div>
+        <div class="dc-name">Full body + Core</div>
+        <div class="dc-muscles">Full body · Core · Balance · Stability</div>
+      </div>
+      <div class="dc-arr">→</div>
+    </div>
+  </div>
+  <div class="science-strip">
+    <div class="sci-item">🔬 Progressive overload</div>
+    <div class="sci-item">⚡ Compound-first order</div>
+    <div class="sci-item">🔥 EPOC metabolic boost</div>
+  </div>
+  <div class="home-cal-row" onclick="openCalendar()">
+    <span class="home-cal-label">Workout log</span>
+    <span class="home-cal-arr">→</span>
+  </div>
+</div>
+
+<!-- DAY VIEW ─────────────────────────────────── -->
+<div id="s-day" class="screen">
+  <div class="day-header">
+    <button class="back-btn" onclick="show('s-home')">←</button>
+    <div>
+      <div id="day-label" class="day-hdr-label">Day A</div>
+      <div id="day-name" class="day-hdr-name">Lower body + Push</div>
+    </div>
+    <button class="start-day-btn" onclick="startWorkout()">Start →</button>
+  </div>
+  <div id="day-exercise-list" class="exercise-list"></div>
+</div>
+
+<!-- WORKOUT MODE ─────────────────────────────── -->
+<div id="s-workout" class="screen">
+  <div class="wk-header">
+    <button class="back-btn" onclick="confirmQuit()">✕</button>
+    <div class="wk-progress-wrap">
+      <div class="wk-progress-bar">
+        <div class="wk-progress-fill" id="wk-prog-fill"></div>
+      </div>
+      <div class="wk-progress-text" id="wk-prog-text">Exercise 1 of 7</div>
+    </div>
+    <div class="wk-elapsed" id="wk-elapsed">0:00</div>
+  </div>
+
+  <div class="wk-body" id="wk-body">
+    <!-- filled by JS -->
+  </div>
+
+  <div class="wk-footer">
+    <div class="wk-set-info">
+      <div class="wk-set-label">Set</div>
+      <div class="wk-set-num" id="wk-set-num">1 / 3</div>
+    </div>
+    <div class="wk-counter-wrap">
+      <button class="wk-minus" onclick="adjustRep(-1)">−</button>
+      <div class="wk-rep-display">
+        <div class="wk-rep-num" id="wk-rep-num">0</div>
+        <div class="wk-rep-label">reps</div>
+      </div>
+      <button class="wk-plus" onclick="adjustRep(1)">+</button>
+    </div>
+    <button class="wk-done-btn" id="wk-done-btn" onclick="doneSet()">Done set ✓</button>
+  </div>
+</div>
+
+<!-- REST ─────────────────────────────────────── -->
+<div id="s-rest" class="screen">
+  <div class="rest-wrap">
+    <div class="rest-label" id="rest-label">Rest</div>
+    <div class="rest-circle">
+      <svg class="rest-ring" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="#1e1e1e" stroke-width="6"/>
+        <circle id="rest-ring-arc" cx="60" cy="60" r="52" fill="none" stroke="white" stroke-width="6"
+          stroke-dasharray="327" stroke-dashoffset="0" stroke-linecap="round"
+          transform="rotate(-90 60 60)"/>
+      </svg>
+      <div class="rest-seconds" id="rest-seconds">60</div>
+    </div>
+    <div class="rest-next" id="rest-next">Next: Dumbbell Row</div>
+    <button class="rest-skip" onclick="skipRest()">Skip rest →</button>
+  </div>
+</div>
+
+<!-- DONE ─────────────────────────────────────── -->
+<div id="s-done" class="screen">
+  <div class="done-wrap">
+    <div class="done-check">✓</div>
+    <h2 class="done-title">Session complete.</h2>
+    <div class="done-stats" id="done-stats"></div>
+    <button class="cta" onclick="show('s-home')">Back to home →</button>
+    <button class="done-cal-btn" onclick="openCalendar()">View calendar</button>
+  </div>
+</div>
+
+<!-- CALENDAR ──────────────────────────────────── -->
+<div id="s-calendar" class="screen">
+  <div class="cal-header">
+    <button class="back-btn" onclick="show('s-home')">←</button>
+    <div class="cal-nav">
+      <button class="cal-arrow" onclick="calShift(-1)">‹</button>
+      <span class="cal-month-label" id="cal-month-label"></span>
+      <button class="cal-arrow" onclick="calShift(1)">›</button>
+    </div>
+    <div style="width:36px"></div>
+  </div>
+  <div class="cal-dow">
+    <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <div class="cal-legend">
+    <div class="cal-leg-item"><span class="cal-badge cal-badge--A">A</span>Lower body + Push</div>
+    <div class="cal-leg-item"><span class="cal-badge cal-badge--B">B</span>Lower body + Pull</div>
+    <div class="cal-leg-item"><span class="cal-badge cal-badge--C">C</span>Full body + Core</div>
+  </div>
+</div>
+
+<script src="workout.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
