@@ -318,5 +318,88 @@ function renderCalendar() {
   document.getElementById('cal-grid').innerHTML = html;
 }
 
+// ── Whoop ─────────────────────────────────────────────────────
+function whoopConnect() {
+  window.location.href = '/.netlify/functions/whoop-auth';
+}
+
+function whoopDisconnect() {
+  ['whoop_access_token','whoop_refresh_token','whoop_expires_at'].forEach(k => localStorage.removeItem(k));
+  document.getElementById('whoop-card').style.display = 'none';
+  document.getElementById('whoop-connect-wrap').style.display = 'block';
+}
+
+async function whoopGetToken() {
+  let token     = localStorage.getItem('whoop_access_token');
+  const expires = parseInt(localStorage.getItem('whoop_expires_at') || '0');
+  if (!token) return null;
+
+  if (Date.now() > expires - 60_000) {
+    const refresh = localStorage.getItem('whoop_refresh_token');
+    if (!refresh) return null;
+    const res  = await fetch('/.netlify/functions/whoop-refresh', {
+      method: 'POST', body: JSON.stringify({ refresh_token: refresh }),
+    });
+    const data = await res.json();
+    if (!data.access_token) { whoopDisconnect(); return null; }
+    token = data.access_token;
+    localStorage.setItem('whoop_access_token', token);
+    localStorage.setItem('whoop_refresh_token', data.refresh_token);
+    localStorage.setItem('whoop_expires_at', Date.now() + data.expires_in * 1000);
+  }
+  return token;
+}
+
+async function whoopLoad() {
+  const token = await whoopGetToken();
+  if (!token) return;
+
+  const res  = await fetch('/.netlify/functions/whoop-data', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return;
+  const { recovery, cycle, sleep } = await res.json();
+  if (!recovery?.score) return;
+
+  const score  = Math.round(recovery.score.recovery_score);
+  const hrv    = Math.round(recovery.score.hrv_rmssd_milli);
+  const rhr    = Math.round(recovery.score.resting_heart_rate);
+  const strain = cycle?.score?.strain?.toFixed(1);
+  const slp    = sleep?.score?.sleep_performance_percentage;
+  const color  = score >= 67 ? '#4ade80' : score >= 34 ? '#facc15' : '#f87171';
+  const note   = score >= 67 ? 'Good to train hard today.' : score < 34 ? 'Consider a lighter session or rest.' : 'Moderate effort recommended.';
+  const d      = new Date(recovery.created_at);
+  const dateStr = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+
+  document.getElementById('whoop-score').textContent = score;
+  document.getElementById('whoop-score').style.color = color;
+  document.getElementById('whoop-date').textContent  = dateStr;
+  document.getElementById('whoop-metrics').innerHTML =
+    `<span>HRV ${hrv}ms</span><span>RHR ${rhr}bpm</span>` +
+    (strain ? `<span>Strain ${strain}</span>` : '') +
+    (slp    ? `<span>Sleep ${Math.round(slp)}%</span>` : '');
+  document.getElementById('whoop-note').textContent  = note;
+  document.getElementById('whoop-note').style.color  = color;
+  document.getElementById('whoop-card').style.display        = 'block';
+  document.getElementById('whoop-connect-wrap').style.display = 'none';
+}
+
 // ── Boot ──────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => show('s-home'));
+document.addEventListener('DOMContentLoaded', async () => {
+  // Handle OAuth callback (?code= in URL)
+  const params = new URLSearchParams(window.location.search);
+  const code   = params.get('code');
+  if (code) {
+    history.replaceState({}, '', '/');
+    const res  = await fetch(`/.netlify/functions/whoop-callback?code=${code}`);
+    const data = await res.json();
+    if (data.access_token) {
+      localStorage.setItem('whoop_access_token', data.access_token);
+      localStorage.setItem('whoop_refresh_token', data.refresh_token);
+      localStorage.setItem('whoop_expires_at', Date.now() + data.expires_in * 1000);
+    }
+  }
+
+  show('s-home');
+  if (localStorage.getItem('whoop_access_token')) whoopLoad();
+});

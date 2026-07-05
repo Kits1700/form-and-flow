@@ -33,6 +33,25 @@ body { font-family: 'Mulish', sans-serif; color: var(--text); -webkit-font-smoot
 .hs-l { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
 .hs-div { width: 1px; height: 32px; background: var(--border2); }
 
+/* ── Whoop ── */
+.whoop-card { margin: 0 1.25rem 0.75rem; border: 1px solid #1e1e1e; border-radius: var(--r); overflow: hidden; }
+.whoop-hdr { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #1a1a1a; }
+.whoop-logo { font-size: 11px; font-weight: 900; background: #fff; color: #000; width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.whoop-title { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.whoop-date { font-size: 11px; color: var(--muted); margin-left: 4px; }
+.whoop-disconnect { margin-left: auto; background: none; border: none; font-size: 10px; color: #333; cursor: pointer; font-family: inherit; }
+.whoop-disconnect:hover { color: var(--muted); }
+.whoop-body { display: flex; align-items: center; gap: 1.25rem; padding: 14px; }
+.whoop-score-wrap { display: flex; align-items: baseline; gap: 2px; flex-shrink: 0; }
+.whoop-score { font-size: 48px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+.whoop-score-label { font-size: 18px; font-weight: 700; color: var(--muted); }
+.whoop-metrics { display: flex; flex-direction: column; gap: 4px; }
+.whoop-metrics span { font-size: 12px; color: var(--muted); }
+.whoop-note { padding: 0 14px 12px; font-size: 11.5px; font-weight: 600; }
+.whoop-connect-wrap { padding: 0 1.25rem 0.75rem; }
+.whoop-connect-btn { width: 100%; padding: 11px; background: none; border: 1px solid #222; border-radius: 10px; color: var(--muted); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.whoop-connect-btn:hover { border-color: #333; color: var(--text); }
+
 .day-cards { padding: 1.5rem 1.25rem; display: flex; flex-direction: column; gap: 10px; }
 .day-card { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 1.25rem; border: 1px solid var(--border); border-radius: var(--r); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
 .day-card:hover { border-color: var(--border2); background: var(--surface); }

@@ -25,6 +25,27 @@
       <div class="hs"><span class="hs-n">7</span><span class="hs-l">Exercises</span></div>
     </div>
   </div>
+  <!-- WHOOP card — hidden until connected -->
+  <div id="whoop-card" class="whoop-card" style="display:none">
+    <div class="whoop-hdr">
+      <span class="whoop-logo">W</span>
+      <span class="whoop-title">Recovery</span>
+      <span class="whoop-date" id="whoop-date"></span>
+      <button class="whoop-disconnect" onclick="whoopDisconnect()">Disconnect</button>
+    </div>
+    <div class="whoop-body">
+      <div class="whoop-score-wrap">
+        <span class="whoop-score" id="whoop-score">—</span>
+        <span class="whoop-score-label">%</span>
+      </div>
+      <div class="whoop-metrics" id="whoop-metrics"></div>
+    </div>
+    <div class="whoop-note" id="whoop-note"></div>
+  </div>
+  <div id="whoop-connect-wrap" class="whoop-connect-wrap">
+    <button class="whoop-connect-btn" onclick="whoopConnect()">Connect Whoop</button>
+  </div>
+
   <div class="day-cards">
     <div class="day-card" onclick="openDay(0)">
       <div class="dc-left">
