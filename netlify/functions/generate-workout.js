@@ -4,7 +4,7 @@ exports.handler = async (event) => {
   try {
     if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
 
-    const { recovery, history } = JSON.parse(event.body || '{}');
+    const { recovery, sleep, cycle, history } = JSON.parse(event.body || '{}');
 
     const recoveryScore = recovery?.score?.recovery_score != null
       ? Math.round(recovery.score.recovery_score) : null;
@@ -12,6 +12,10 @@ exports.handler = async (event) => {
       ? Math.round(recovery.score.hrv_rmssd_milli) : null;
     const rhr = recovery?.score?.resting_heart_rate != null
       ? Math.round(recovery.score.resting_heart_rate) : null;
+    const sleepPct = sleep?.score?.sleep_performance_percentage != null
+      ? Math.round(sleep.score.sleep_performance_percentage) : null;
+    const strain = cycle?.score?.strain != null
+      ? cycle.score.strain.toFixed(1) : null;
 
     const intensity = recoveryScore === null ? 'moderate'
       : recoveryScore >= 67 ? 'full'
@@ -33,10 +37,12 @@ USER PROFILE:
 - Level: beginner/intermediate
 - Health: myasthenia gravis in remission — rest MUST be 90-120s minimum, never train to failure
 
-TODAY'S WHOOP RECOVERY:
+TODAY'S WHOOP DATA:
 ${recoveryScore !== null
   ? `- Recovery: ${recoveryScore}% → ${intensity} intensity session\n- HRV: ${hrv}ms\n- RHR: ${rhr}bpm`
   : '- Recovery data unavailable → moderate intensity'}
+${sleepPct !== null ? `- Sleep performance: ${sleepPct}% (if below 70%, favour lower volume and more rest even at higher recovery)` : ''}
+${strain !== null ? `- Today's strain so far: ${strain}/21 (if already above 10, the user has exerted a lot today — keep this session lighter)` : ''}
 
 RECENT WORKOUT HISTORY (last 7 sessions):
 ${historyStr}

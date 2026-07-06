@@ -538,7 +538,12 @@ async function generateWorkout() {
     const res = await fetch('/.netlify/functions/generate-workout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ recovery: _whoopData?.recovery ?? null, history }),
+      body: JSON.stringify({
+        recovery: _whoopData?.recovery ?? null,
+        sleep:    _whoopData?.sleep    ?? null,
+        cycle:    _whoopData?.cycle    ?? null,
+        history,
+      }),
     });
 
     if (!res.ok) throw new Error('Generation failed');
