@@ -364,13 +364,13 @@ function showCalDetail(ds) {
 
   const info = logged ? (typeof logged === 'object' ? logged : { id: logged, name: logged, muscles: [] }) : null;
 
-  let whoopScore = null;
-  if (whoop) {
-    const r = whoop.recovery ?? 0, s = whoop.strain ?? 0, sl = whoop.sleep ?? 0;
-    if (r >= 67 && s >= 8 && sl >= 70)        whoopScore = 'Great day';
-    else if (r >= 67 || (r >= 34 && sl >= 60)) whoopScore = 'Good day';
-    else if (r > 0 || s > 0)                  whoopScore = 'Light day';
-  }
+  const dayScore = trackScore({
+    recovery:    whoop?.recovery ?? null,
+    sleep:       whoop?.sleep    ?? null,
+    strain:      whoop?.strain   ?? null,
+    steps:       stepVal ?? null,
+    workoutDone: !!logged,
+  });
 
   const rows = [];
   if (info) rows.push(`<div class="cal-entry-row"><span class="cal-entry-key">Workout</span><span class="cal-entry-val">${info.name || info.id}</span></div>`);
@@ -380,11 +380,16 @@ function showCalDetail(ds) {
     if (whoop.recovery != null) parts.push(`Recovery ${whoop.recovery}%`);
     if (whoop.strain   != null) parts.push(`Strain ${whoop.strain}`);
     if (whoop.sleep    != null) parts.push(`Sleep ${whoop.sleep}%`);
-    rows.push(`<div class="cal-entry-row"><span class="cal-entry-key">Whoop${whoopScore ? ` · ${whoopScore}` : ''}</span><span class="cal-entry-val">${parts.join(' · ')}</span></div>`);
+    rows.push(`<div class="cal-entry-row"><span class="cal-entry-key">Whoop</span><span class="cal-entry-val">${parts.join(' · ')}</span></div>`);
   }
+
+  const scoreRow = dayScore != null
+    ? `<div class="cal-entry-row cal-entry-score"><span class="cal-entry-key">On track</span><span class="cal-entry-val">${dayScore}/10</span></div>`
+    : '';
 
   document.getElementById('cal-detail').innerHTML = `
     <div class="cal-detail-date">${dayStr}</div>
+    ${scoreRow}
     ${rows.join('')}
   `;
 }
@@ -516,6 +521,57 @@ async function whoopLoad() {
   document.getElementById('whoop-metric-grid').innerHTML      = cards.join('');
   document.getElementById('whoop-card').style.display         = 'block';
   document.getElementById('whoop-connect-wrap').style.display = 'none';
+
+  renderTrackScore();
+}
+
+// ── On-track score ────────────────────────────────────────────
+// Blends recovery, sleep, steps and training into a /10 score,
+// normalised to whatever data is available.
+function trackScore({ recovery, sleep, strain, steps, workoutDone }) {
+  let pts = 0, max = 0;
+  if (recovery != null) { pts += (recovery / 100) * 3; max += 3; }
+  if (sleep    != null) { pts += (sleep    / 100) * 3; max += 3; }
+  if (steps    != null) { pts += Math.min(steps / 8000, 1) * 2; max += 2; }
+  // Training always counts: full 2 if a workout is logged, else from strain
+  const training = workoutDone ? 2 : Math.min((strain || 0) / 12, 1) * 2;
+  pts += training; max += 2;
+  if (max === 0) return null;
+  return Math.round((pts / max) * 10 * 10) / 10; // one decimal
+}
+
+function renderTrackScore() {
+  const el = document.getElementById('track-score');
+  if (!el) return;
+
+  const d       = _whoopData || {};
+  const steps   = JSON.parse(localStorage.getItem('ff_steps') || '{}')[today()];
+  const log     = JSON.parse(localStorage.getItem('ff_log')   || '{}');
+
+  const score = trackScore({
+    recovery:    d.recovery?.score?.recovery_score ?? null,
+    sleep:       d.sleep?.score?.sleep_performance_percentage ?? null,
+    strain:      d.cycle?.score?.strain ?? null,
+    steps:       steps ?? null,
+    workoutDone: !!log[today()],
+  });
+
+  if (score == null) { el.style.display = 'none'; return; }
+
+  const label = score >= 8 ? 'Crushing it'
+              : score >= 6 ? 'On track'
+              : score >= 4 ? 'Some ground to make up'
+              : 'Rest & reset day';
+
+  const pct = Math.round(score * 10);
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div class="ts-top">
+      <span class="ts-label">On track today</span>
+      <span class="ts-num"><span class="ts-num-big">${score}</span><span class="ts-num-max">/10</span></span>
+    </div>
+    <div class="ts-bar"><div class="ts-bar-fill" style="width:${pct}%"></div></div>
+    <div class="ts-desc">${label}</div>`;
 }
 
 // ── AI Workout Generation ─────────────────────────────────────
@@ -641,6 +697,7 @@ function saveSteps() {
   document.getElementById('steps-val').textContent = n.toLocaleString();
   input.blur();
   stepsSetMode('display');
+  renderTrackScore();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
