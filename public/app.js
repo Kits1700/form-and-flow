@@ -409,15 +409,25 @@ async function whoopGetToken() {
   if (Date.now() > expires - 60_000) {
     const refresh = localStorage.getItem('whoop_refresh_token');
     if (!refresh) return null;
-    const res  = await fetch('/.netlify/functions/whoop-refresh', {
-      method: 'POST', body: JSON.stringify({ refresh_token: refresh }),
-    });
-    const data = await res.json();
-    if (!data.access_token) { whoopDisconnect(); return null; }
-    token = data.access_token;
-    localStorage.setItem('whoop_access_token', token);
-    localStorage.setItem('whoop_refresh_token', data.refresh_token);
-    localStorage.setItem('whoop_expires_at', Date.now() + data.expires_in * 1000);
+    try {
+      const res  = await fetch('/.netlify/functions/whoop-refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refresh }),
+      });
+      const data = await res.json();
+      if (data.access_token) {
+        token = data.access_token;
+        localStorage.setItem('whoop_access_token', token);
+        if (data.refresh_token) localStorage.setItem('whoop_refresh_token', data.refresh_token);
+        localStorage.setItem('whoop_expires_at', Date.now() + (data.expires_in || 3600) * 1000);
+      } else if (res.status === 401) {
+        // Refresh token expired — must reconnect
+        whoopDisconnect();
+        return null;
+      }
+      // On network error or 5xx: fall through and use existing token
+    } catch (_) { /* network error — use existing token */ }
   }
   return token;
 }
@@ -485,7 +495,7 @@ async function whoopLoad() {
     cards.push(metricCard('HRV', hrv, 'ms'));
     cards.push(metricCard('Resting HR', rhr, 'bpm'));
   } else {
-    document.getElementById('whoop-note').textContent = 'Recovery needs overnight sleep data.';
+    document.getElementById('whoop-note').textContent = 'Open your Whoop app after waking to sync sleep & recovery.';
   }
 
   if (strain  != null) cards.push(metricCard('Strain',   strain.toFixed(1), '/21'));
