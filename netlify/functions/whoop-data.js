@@ -1,6 +1,7 @@
 const safeJson = async (res) => {
   const text = await res.text();
-  try { return JSON.parse(text); } catch { return null; }
+  try { return { data: JSON.parse(text), raw: text.slice(0, 500) }; }
+  catch { return { data: null, raw: text.slice(0, 500) }; }
 };
 
 exports.handler = async (event) => {
@@ -17,17 +18,17 @@ exports.handler = async (event) => {
       fetch('https://api.prod.whoop.com/developer/v1/workout/?limit=7', { headers }),
     ]);
 
-    const [recoveryData, cycleData, sleepData, workoutData] = await Promise.all([
+    const [recoveryResult, cycleResult, sleepResult, workoutResult] = await Promise.all([
       safeJson(recoveryRes),
       safeJson(cycleRes),
       safeJson(sleepRes),
       safeJson(workoutRes),
     ]);
 
-    const recoveries = recoveryData?.records ?? [];
-    const cycles     = cycleData?.records    ?? [];
-    const sleeps     = sleepData?.records    ?? [];
-    const workouts   = workoutData?.records  ?? [];
+    const recoveries = recoveryResult.data?.records ?? [];
+    const cycles     = cycleResult.data?.records    ?? [];
+    const sleeps     = sleepResult.data?.records    ?? [];
+    const workouts   = workoutResult.data?.records  ?? [];
 
     return {
       statusCode: 200,
@@ -46,6 +47,8 @@ exports.handler = async (event) => {
           recoveryCounts: recoveries.length,
           cycleCounts:    cycles.length,
           sleepCounts:    sleeps.length,
+          recoveryRaw:    recoveryResult.raw,
+          sleepRaw:       sleepResult.raw,
         },
       }),
     };
