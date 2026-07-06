@@ -12,10 +12,10 @@ exports.handler = async (event) => {
     const headers = { Authorization: `Bearer ${token}` };
 
     const [recoveryRes, cycleRes, sleepRes, workoutRes] = await Promise.all([
-      fetch('https://api.prod.whoop.com/developer/v1/recovery/?limit=7', { headers }),
-      fetch('https://api.prod.whoop.com/developer/v1/cycle/?limit=7', { headers }),
-      fetch('https://api.prod.whoop.com/developer/v1/sleep/?limit=7', { headers }),
-      fetch('https://api.prod.whoop.com/developer/v1/workout/?limit=7', { headers }),
+      fetch('https://api.prod.whoop.com/developer/v2/recovery?limit=7', { headers }),
+      fetch('https://api.prod.whoop.com/developer/v2/cycle?limit=7', { headers }),
+      fetch('https://api.prod.whoop.com/developer/v2/activity/sleep?limit=7', { headers }),
+      fetch('https://api.prod.whoop.com/developer/v2/activity/workout?limit=7', { headers }),
     ]);
 
     const [recoveryResult, cycleResult, sleepResult, workoutResult] = await Promise.all([
