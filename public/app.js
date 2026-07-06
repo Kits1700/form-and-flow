@@ -644,12 +644,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   const code   = params.get('code');
   if (code) {
     history.replaceState({}, '', '/');
-    const res  = await fetch(`/.netlify/functions/whoop-callback?code=${code}`);
-    const data = await res.json();
-    if (data.access_token) {
-      localStorage.setItem('whoop_access_token', data.access_token);
-      localStorage.setItem('whoop_refresh_token', data.refresh_token);
-      localStorage.setItem('whoop_expires_at', Date.now() + data.expires_in * 1000);
+    try {
+      const res  = await fetch(`/.netlify/functions/whoop-callback?code=${code}`);
+      const data = await res.json();
+      if (data.access_token) {
+        localStorage.setItem('whoop_access_token', data.access_token);
+        localStorage.setItem('whoop_refresh_token', data.refresh_token || '');
+        localStorage.setItem('whoop_expires_at', Date.now() + (data.expires_in || 3600) * 1000);
+      } else {
+        console.error('Whoop callback error:', data);
+        alert('Whoop connection failed: ' + (data.detail?.error_description || data.error || 'unknown error') + '\n\nPlease try connecting again.');
+      }
+    } catch (err) {
+      console.error('Whoop callback fetch error:', err);
+      alert('Whoop connection failed: ' + err.message);
     }
   }
 
