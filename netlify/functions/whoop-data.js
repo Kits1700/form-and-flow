@@ -1,7 +1,6 @@
 const safeJson = async (res) => {
   const text = await res.text();
-  try { return { data: JSON.parse(text), raw: text.slice(0, 500) }; }
-  catch { return { data: null, raw: text.slice(0, 500) }; }
+  try { return JSON.parse(text); } catch { return null; }
 };
 
 exports.handler = async (event) => {
@@ -18,17 +17,17 @@ exports.handler = async (event) => {
       fetch('https://api.prod.whoop.com/developer/v2/activity/workout?limit=7', { headers }),
     ]);
 
-    const [recoveryResult, cycleResult, sleepResult, workoutResult] = await Promise.all([
+    const [recoveryData, cycleData, sleepData, workoutData] = await Promise.all([
       safeJson(recoveryRes),
       safeJson(cycleRes),
       safeJson(sleepRes),
       safeJson(workoutRes),
     ]);
 
-    const recoveries = recoveryResult.data?.records ?? [];
-    const cycles     = cycleResult.data?.records    ?? [];
-    const sleeps     = sleepResult.data?.records    ?? [];
-    const workouts   = workoutResult.data?.records  ?? [];
+    const recoveries = recoveryData?.records ?? [];
+    const cycles     = cycleData?.records    ?? [];
+    const sleeps     = sleepData?.records    ?? [];
+    const workouts   = workoutData?.records  ?? [];
 
     return {
       statusCode: 200,
@@ -39,24 +38,13 @@ exports.handler = async (event) => {
         sleep:    sleeps[0]     ?? null,
         workouts,
         history: { recoveries, cycles, sleeps },
-        _debug: {
-          recoveryStatus: recoveryRes.status,
-          cycleStatus:    cycleRes.status,
-          sleepStatus:    sleepRes.status,
-          workoutStatus:  workoutRes.status,
-          recoveryCounts: recoveries.length,
-          cycleCounts:    cycles.length,
-          sleepCounts:    sleeps.length,
-          recoveryRaw:    recoveryResult.raw,
-          sleepRaw:       sleepResult.raw,
-        },
       }),
     };
   } catch (err) {
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err.message, stack: err.stack }),
+      body: JSON.stringify({ error: err.message }),
     };
   }
 };
