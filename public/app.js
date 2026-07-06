@@ -591,6 +591,15 @@ async function generateWorkout() {
         muscles: typeof info === 'object' ? (info.muscles || []) : [],
       }));
 
+    // Build "avoid" list so regenerate + day-to-day produce fresh sessions.
+    // Includes the workout currently on screen (being regenerated) plus the
+    // last several generated sessions.
+    const recentGen = JSON.parse(localStorage.getItem('ff_recent_gen') || '[]');
+    const avoid = [];
+    const current = window._todayWorkout;
+    if (current) avoid.push({ type: current.type || '', exercises: (current.exercises || []).map(e => e.name) });
+    recentGen.slice(-6).reverse().forEach(g => avoid.push(g));
+
     const res = await fetch('/.netlify/functions/generate-workout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -599,12 +608,18 @@ async function generateWorkout() {
         sleep:    _whoopData?.sleep    ?? null,
         cycle:    _whoopData?.cycle    ?? null,
         history,
+        avoid,
       }),
     });
 
     if (!res.ok) throw new Error('Generation failed');
     const workout = await res.json();
     if (workout.error) throw new Error(workout.error);
+
+    // Record this generation so the next one avoids it
+    const gen = JSON.parse(localStorage.getItem('ff_recent_gen') || '[]');
+    gen.push({ date: today(), type: workout.type || '', exercises: (workout.exercises || []).map(e => e.name) });
+    localStorage.setItem('ff_recent_gen', JSON.stringify(gen.slice(-12)));
 
     localStorage.setItem('ff_today_workout', JSON.stringify({ date: today(), workout }));
     showTodayWorkout(workout);
@@ -651,10 +666,10 @@ function startAIWorkout() {
 }
 
 function regenWorkout() {
+  // Keep window._todayWorkout intact so generateWorkout can avoid repeating it.
   localStorage.removeItem('ff_today_workout');
-  window._todayWorkout = null;
   document.getElementById('today-workout-card').style.display = 'none';
-  document.getElementById('generate-btn').style.display       = 'block';
+  document.getElementById('generate-btn').style.display       = 'none';
   generateWorkout();
 }
 

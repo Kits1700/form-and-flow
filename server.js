@@ -16,10 +16,11 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-async function claude(prompt, maxTokens) {
+async function claude(prompt, maxTokens, temperature = 0.7) {
   const msg = await client.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: maxTokens,
+    temperature,
     system: 'You are a JSON API. Respond with only a valid JSON object, no markdown, no explanation.',
     messages: [{ role: 'user', content: prompt }],
   });
@@ -77,7 +78,7 @@ Return JSON with this exact shape (all string values max 12 words):
 // ── Local proxy for Netlify generate-workout function ─────────
 app.post('/.netlify/functions/generate-workout', async (req, res) => {
   try {
-    const { recovery, sleep, cycle, history } = req.body || {};
+    const { recovery, sleep, cycle, history, avoid } = req.body || {};
     const recoveryScore = recovery?.score?.recovery_score != null
       ? Math.round(recovery.score.recovery_score) : null;
     const hrv = recovery?.score?.hrv_rmssd_milli != null
@@ -95,6 +96,9 @@ app.post('/.netlify/functions/generate-workout', async (req, res) => {
     const historyStr = Array.isArray(history) && history.length
       ? history.slice(0, 7).map(h => `${h.date}: ${h.name || h.id}${h.muscles?.length ? ` — muscles: ${h.muscles.join(', ')}` : ''}`).join('\n')
       : 'No recent history';
+    const avoidStr = Array.isArray(avoid) && avoid.length
+      ? avoid.map((a, i) => `${i === 0 ? 'MOST RECENT' : `#${i + 1}`}: ${a.type || 'Unknown'} — ${(a.exercises || []).join(', ')}`).join('\n')
+      : null;
 
     const prompt = `You are a personal trainer designing a dumbbell home workout.
 
@@ -112,16 +116,25 @@ ${recoveryScore !== null
 ${sleepPct !== null ? `- Sleep performance: ${sleepPct}% (if below 70%, favour lower volume and more rest even at higher recovery)` : ''}
 ${strain !== null ? `- Today's strain so far: ${strain}/21 (if already above 10, the user has exerted a lot today — keep this session lighter)` : ''}
 
-RECENT WORKOUT HISTORY (last 7 sessions):
+RECENT WORKOUT HISTORY (completed sessions, last 7):
 ${historyStr}
+${avoidStr ? `
+SESSIONS ALREADY OFFERED — you MUST NOT repeat these:
+${avoidStr}
 
-SESSION TYPE SELECTION — choose the best type given recovery + history:
+HARD VARIETY RULES (a good trainer never gives the same session twice):
+- Pick a DIFFERENT "type" than "MOST RECENT" above
+- At most ONE exercise may overlap with "MOST RECENT"; ideally zero
+- Vary exercise selection, order, rep ranges and tempo from all sessions listed
+- If the user trained a muscle group in the last 48h (see history), prioritise the opposite groups today` : ''}
+
+SESSION TYPE SELECTION — act like a professional trainer programming a weekly split:
 Available types: "Upper Push", "Upper Pull", "Lower Body", "Full Body", "Core & Mobility"
-- Avoid repeating the same type or overlapping muscle groups within 48h
+- Rotate intelligently: if legs were trained recently, do upper or core today; alternate push/pull
 - light intensity → prefer "Core & Mobility" or light "Lower Body"
 - moderate intensity → "Upper Push", "Upper Pull", or "Lower Body"
 - full intensity → any type, favour what hasn't been done recently
-- If history is empty or varied, default to "Full Body"
+- Only default to "Full Body" when there is no recent history AND nothing to avoid
 
 VOLUME BY INTENSITY:
 - light = 3-4 exercises, bodyweight or very light loads
@@ -138,7 +151,7 @@ RULES:
 Return ONLY valid JSON, no markdown:
 {"name":"Short session name","type":"Upper Push","focus":"Main muscles","intensity":"${intensity}","exercises":[{"name":"Exercise name","sets":3,"reps":"10-12","rest":90,"muscles":["Primary","Secondary"],"cue":"Key form tip","science":"Plain English why","svgFn":"squat"}]}`;
 
-    const data = await claude(prompt, 2048);
+    const data = await claude(prompt, 2048, 1);
     res.json(data);
   } catch (err) {
     console.error(err);

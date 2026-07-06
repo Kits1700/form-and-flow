@@ -4,7 +4,7 @@ exports.handler = async (event) => {
   try {
     if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method not allowed' };
 
-    const { recovery, sleep, cycle, history } = JSON.parse(event.body || '{}');
+    const { recovery, sleep, cycle, history, avoid } = JSON.parse(event.body || '{}');
 
     const recoveryScore = recovery?.score?.recovery_score != null
       ? Math.round(recovery.score.recovery_score) : null;
@@ -28,6 +28,12 @@ exports.handler = async (event) => {
         ).join('\n')
       : 'No recent history';
 
+    const avoidStr = Array.isArray(avoid) && avoid.length
+      ? avoid.map((a, i) =>
+          `${i === 0 ? 'MOST RECENT' : `#${i + 1}`}: ${a.type || 'Unknown'} — ${(a.exercises || []).join(', ')}`
+        ).join('\n')
+      : null;
+
     const prompt = `You are a personal trainer designing a dumbbell home workout.
 
 USER PROFILE:
@@ -44,16 +50,25 @@ ${recoveryScore !== null
 ${sleepPct !== null ? `- Sleep performance: ${sleepPct}% (if below 70%, favour lower volume and more rest even at higher recovery)` : ''}
 ${strain !== null ? `- Today's strain so far: ${strain}/21 (if already above 10, the user has exerted a lot today — keep this session lighter)` : ''}
 
-RECENT WORKOUT HISTORY (last 7 sessions):
+RECENT WORKOUT HISTORY (completed sessions, last 7):
 ${historyStr}
+${avoidStr ? `
+SESSIONS ALREADY OFFERED — you MUST NOT repeat these:
+${avoidStr}
 
-SESSION TYPE SELECTION — choose the best type given recovery + history:
+HARD VARIETY RULES (a good trainer never gives the same session twice):
+- Pick a DIFFERENT "type" than "MOST RECENT" above
+- At most ONE exercise may overlap with "MOST RECENT"; ideally zero
+- Vary exercise selection, order, rep ranges and tempo from all sessions listed
+- If the user trained a muscle group in the last 48h (see history), prioritise the opposite groups today` : ''}
+
+SESSION TYPE SELECTION — act like a professional trainer programming a weekly split:
 Available types: "Upper Push", "Upper Pull", "Lower Body", "Full Body", "Core & Mobility"
-- Avoid repeating the same type or overlapping muscle groups within 48h
+- Rotate intelligently: if legs were trained recently, do upper or core today; alternate push/pull
 - light intensity → prefer "Core & Mobility" or light "Lower Body"
 - moderate intensity → "Upper Push", "Upper Pull", or "Lower Body"
 - full intensity → any type, favour what hasn't been done recently
-- If history is empty or varied, default to "Full Body"
+- Only default to "Full Body" when there is no recent history AND nothing to avoid
 
 VOLUME BY INTENSITY:
 - light = 3-4 exercises, bodyweight or very light loads
@@ -91,6 +106,7 @@ Return ONLY valid JSON, no markdown, no explanation:
     const msg = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 2048,
+      temperature: 1,
       messages: [{ role: 'user', content: prompt }],
     });
 
