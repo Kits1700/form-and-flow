@@ -442,6 +442,15 @@ function metricCard(label, value, unit) {
   </div>`;
 }
 
+async function whoopRefresh() {
+  const btn = document.getElementById('whoop-refresh-btn');
+  btn.textContent = '…';
+  btn.disabled = true;
+  await whoopLoad();
+  btn.textContent = '↻';
+  btn.disabled = false;
+}
+
 async function whoopLoad() {
   const token = await whoopGetToken();
   if (!token) return;

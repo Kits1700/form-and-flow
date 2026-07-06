@@ -38,7 +38,9 @@ body { font-family: 'Mulish', sans-serif; color: var(--text); -webkit-font-smoot
 .whoop-hdr { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
 .whoop-logo { font-size: 11px; font-weight: 900; background: #fff; color: #000; width: 20px; height: 20px; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .whoop-title { font-size: 11px; font-weight: 700; color: var(--muted); flex: 1; }
-.whoop-disconnect { margin-left: auto; background: none; border: none; font-size: 10px; color: #333; cursor: pointer; font-family: inherit; }
+.whoop-refresh-btn { margin-left: auto; background: none; border: none; font-size: 14px; color: #333; cursor: pointer; line-height: 1; padding: 0 6px 0 0; }
+.whoop-refresh-btn:hover { color: var(--muted); }
+.whoop-disconnect { background: none; border: none; font-size: 10px; color: #333; cursor: pointer; font-family: inherit; }
 .whoop-disconnect:hover { color: var(--muted); }
 .whoop-note { padding: 10px 14px 4px; font-size: 11.5px; font-weight: 600; color: var(--muted); }
 .whoop-connect-wrap { padding: 0 1.25rem 0.75rem; }
