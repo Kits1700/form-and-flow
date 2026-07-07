@@ -38,7 +38,9 @@
   <div class="generate-section">
     <div id="today-workout-card" style="display:none"></div>
 
-    <div class="gen-prefs" id="gen-prefs">
+    <button id="generate-btn" class="generate-btn" onclick="generateWorkout()">Generate Today's Workout</button>
+
+    <div class="gen-prefs" id="gen-prefs" style="display:none">
       <div class="gen-pref-group">
         <span class="gen-pref-label">Time available</span>
         <div class="gen-pref-options" id="time-options">
@@ -68,25 +70,12 @@
           <button class="gen-pref-btn" data-val="Core & Mobility" onclick="setPref('split','Core & Mobility')">Core & Mobility</button>
         </div>
       </div>
+      <button id="gen-confirm-btn" class="generate-btn" onclick="confirmRegenerate()">Okay, regenerate →</button>
     </div>
 
-    <button id="generate-btn" class="generate-btn" onclick="generateWorkout()">Generate Today's Workout</button>
     <div id="generate-loading" class="generate-loading" style="display:none">
       <div class="generate-spinner"></div>
       <span>Designing your workout...</span>
-    </div>
-  </div>
-
-  <!-- Steps logger -->
-  <div class="steps-row" id="steps-row" onclick="stepsSetMode('edit')">
-    <div class="steps-left">
-      <span class="steps-label">Steps today</span>
-      <span class="steps-val" id="steps-val">—</span>
-      <span class="steps-edit-hint" id="steps-edit-hint" style="display:none">Tap to edit</span>
-    </div>
-    <div class="steps-right" id="steps-input-wrap">
-      <input class="steps-input" id="steps-input" type="number" inputmode="numeric" placeholder="0" min="0" max="99999" onclick="event.stopPropagation()" />
-      <button class="steps-save-btn" onclick="event.stopPropagation(); saveSteps()">Log</button>
     </div>
   </div>
 

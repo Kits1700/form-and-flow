@@ -28,6 +28,7 @@ function openDay(idx) {
         </div>
       </div>
       <div class="ex-cue">${ex.cue}</div>
+      <a class="ex-watch-link" href="${youtubeSearchUrl(ex.name)}" target="_blank" rel="noopener">▶ Watch tutorial</a>
       ${ex.science ? `<div class="ex-science"><span class="ex-sci-icon">&#x1F52C;</span> ${ex.science}</div>` : ''}
       ${ex.beginner ? `
       <div class="ex-levels">
@@ -70,6 +71,10 @@ let _timerInterval = null;
 let _timerLeft = 0;
 let _startTime = null;
 let _elapsedInterval = null;
+
+function youtubeSearchUrl(name) {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(name + ' dumbbell exercise tutorial proper form')}`;
+}
 
 function isTimed(ex) {
   return typeof ex.reps === 'string' && ex.reps.includes('sec');
@@ -148,6 +153,7 @@ function renderExercise() {
       <div class="wk-cue-label">Form cue</div>
       <div class="wk-cue-text">${ex.cue}</div>
     </div>
+    <a class="ex-watch-link" href="${youtubeSearchUrl(ex.name)}" target="_blank" rel="noopener">▶ Watch tutorial</a>
     ${ex.science ? `<div class="wk-science">&#x1F52C; ${ex.science}</div>` : ''}`;
 }
 
@@ -694,56 +700,21 @@ function startAIWorkout() {
 }
 
 function regenWorkout() {
-  // Keep window._todayWorkout intact so generateWorkout can avoid repeating it.
-  localStorage.removeItem('ff_today_workout');
+  // Show the options panel so the user can adjust time/intensity/split
+  // before regenerating. Actual generation waits for confirmRegenerate().
   document.getElementById('today-workout-card').style.display = 'none';
   document.getElementById('generate-btn').style.display       = 'none';
   document.getElementById('gen-prefs').style.display           = 'flex';
+}
+
+function confirmRegenerate() {
+  // Keep window._todayWorkout intact so generateWorkout can avoid repeating it.
+  localStorage.removeItem('ff_today_workout');
+  document.getElementById('gen-prefs').style.display = 'none';
   generateWorkout();
 }
 
 // ── Boot ──────────────────────────────────────────────────────
-// ── Steps logger ──────────────────────────────────────────────
-function stepsSetMode(mode) {
-  const wrap = document.getElementById('steps-input-wrap');
-  const hint = document.getElementById('steps-edit-hint');
-  if (mode === 'edit') {
-    wrap.style.display = 'flex';
-    if (hint) hint.style.display = 'none';
-    document.getElementById('steps-input').focus();
-  } else {
-    wrap.style.display = 'none';
-    if (hint) hint.style.display = 'block';
-  }
-}
-
-function loadSteps() {
-  const store = JSON.parse(localStorage.getItem('ff_steps') || '{}');
-  const val   = store[today()];
-  const valEl = document.getElementById('steps-val');
-  document.getElementById('steps-input').value = val ?? '';
-  if (val != null) {
-    valEl.textContent = val.toLocaleString();
-    stepsSetMode('display');
-  } else {
-    valEl.textContent = '—';
-    stepsSetMode('edit');
-  }
-}
-
-function saveSteps() {
-  const input = document.getElementById('steps-input');
-  const n = parseInt(input.value, 10);
-  if (isNaN(n) || n < 0) return;
-  const store = JSON.parse(localStorage.getItem('ff_steps') || '{}');
-  store[today()] = n;
-  localStorage.setItem('ff_steps', JSON.stringify(store));
-  document.getElementById('steps-val').textContent = n.toLocaleString();
-  input.blur();
-  stepsSetMode('display');
-  renderTrackScore();
-}
-
 document.addEventListener('DOMContentLoaded', async () => {
   // Handle OAuth callback (?code= in URL)
   const params = new URLSearchParams(window.location.search);
@@ -774,6 +745,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (storedWorkout?.date === today()) showTodayWorkout(storedWorkout.workout);
 
   if (localStorage.getItem('whoop_access_token')) whoopLoad();
-  loadSteps();
   loadPrefs();
 });
