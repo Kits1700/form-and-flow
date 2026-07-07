@@ -57,6 +57,17 @@
           <button class="gen-pref-btn" data-val="full" onclick="setPref('intensity','full')">Full</button>
         </div>
       </div>
+      <div class="gen-pref-group">
+        <span class="gen-pref-label">Split</span>
+        <div class="gen-pref-options gen-pref-options--wrap" id="split-options">
+          <button class="gen-pref-btn active" data-val="auto" onclick="setPref('split','auto')">Auto</button>
+          <button class="gen-pref-btn" data-val="Upper Push" onclick="setPref('split','Upper Push')">Upper Push</button>
+          <button class="gen-pref-btn" data-val="Upper Pull" onclick="setPref('split','Upper Pull')">Upper Pull</button>
+          <button class="gen-pref-btn" data-val="Lower Body" onclick="setPref('split','Lower Body')">Lower Body</button>
+          <button class="gen-pref-btn" data-val="Full Body" onclick="setPref('split','Full Body')">Full Body</button>
+          <button class="gen-pref-btn" data-val="Core & Mobility" onclick="setPref('split','Core & Mobility')">Core & Mobility</button>
+        </div>
+      </div>
     </div>
 
     <button id="generate-btn" class="generate-btn" onclick="generateWorkout()">Generate Today's Workout</button>

@@ -574,9 +574,9 @@ function renderTrackScore() {
     <div class="ts-desc">${label}</div>`;
 }
 
-// ── Generation preferences (time / intensity) ─────────────────
+// ── Generation preferences (time / intensity / split) ──────────
 function getPrefs() {
-  return JSON.parse(localStorage.getItem('ff_gen_prefs') || '{"time":"30","intensity":"auto"}');
+  return JSON.parse(localStorage.getItem('ff_gen_prefs') || '{"time":"30","intensity":"auto","split":"auto"}');
 }
 
 function setPref(kind, val) {
@@ -590,7 +590,7 @@ function setPref(kind, val) {
 
 function loadPrefs() {
   const prefs = getPrefs();
-  ['time', 'intensity'].forEach(kind => {
+  ['time', 'intensity', 'split'].forEach(kind => {
     document.querySelectorAll(`#${kind}-options .gen-pref-btn`).forEach(b => {
       b.classList.toggle('active', b.dataset.val === prefs[kind]);
     });
@@ -635,6 +635,7 @@ async function generateWorkout() {
         avoid,
         timeMinutes: parseInt(prefs.time, 10),
         intensityOverride: prefs.intensity === 'auto' ? null : prefs.intensity,
+        typeOverride: prefs.split === 'auto' ? null : prefs.split,
       }),
     });
 

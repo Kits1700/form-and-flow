@@ -258,6 +258,8 @@ body { font-family: 'Mulish', sans-serif; color: var(--text); -webkit-font-smoot
 .gen-pref-group { display: flex; flex-direction: column; gap: 6px; }
 .gen-pref-label { font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
 .gen-pref-options { display: flex; gap: 6px; }
+.gen-pref-options--wrap { flex-wrap: wrap; }
+.gen-pref-options--wrap .gen-pref-btn { flex: 0 0 auto; padding: 8px 12px; }
 .gen-pref-btn { flex: 1; padding: 9px 4px; background: none; border: 1px solid var(--border2); border-radius: 9px; color: var(--muted); font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
 .gen-pref-btn:hover { border-color: var(--faint); }
 .gen-pref-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }

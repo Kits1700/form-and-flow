@@ -78,7 +78,9 @@ Return JSON with this exact shape (all string values max 12 words):
 // ── Local proxy for Netlify generate-workout function ─────────
 app.post('/.netlify/functions/generate-workout', async (req, res) => {
   try {
-    const { recovery, sleep, cycle, history, avoid, timeMinutes, intensityOverride } = req.body || {};
+    const { recovery, sleep, cycle, history, avoid, timeMinutes, intensityOverride, typeOverride } = req.body || {};
+    const VALID_TYPES = ['Upper Push', 'Upper Pull', 'Lower Body', 'Full Body', 'Core & Mobility'];
+    const forcedType = VALID_TYPES.includes(typeOverride) ? typeOverride : null;
     const recoveryScore = recovery?.score?.recovery_score != null
       ? Math.round(recovery.score.recovery_score) : null;
     const hrv = recovery?.score?.hrv_rmssd_milli != null
@@ -127,6 +129,7 @@ ${strain !== null ? `- Today's strain so far: ${strain}/21 (if already above 10,
 USER'S REQUEST FOR TODAY:
 - Time available: ${minutes} minutes → aim for ${exerciseRange} exercises total (including warm-up if any)
 - Intensity: ${intensityOverride ? `${intensity} — the user explicitly chose this, override the Whoop-based recommendation` : `${intensity} (auto-selected from recovery — Whoop recovery was ${recoveryScore ?? 'unavailable'}%)`}
+${forcedType ? `- Split: ${forcedType} — the user explicitly picked this type for today, do not choose a different one` : ''}
 - Rest between sets MUST stay 90-120s minimum regardless of time pressure (MG safety) — cut exercise count, not rest time, to fit the time budget
 
 RECENT WORKOUT HISTORY (completed sessions, last 7):
@@ -136,18 +139,21 @@ SESSIONS ALREADY OFFERED — you MUST NOT repeat these:
 ${avoidStr}
 
 HARD VARIETY RULES (a good trainer never gives the same session twice):
-- Pick a DIFFERENT "type" than "MOST RECENT" above
+${forcedType ? `- The type is fixed to "${forcedType}" (see below), so vary this from "MOST RECENT" by exercise selection instead` : `- Pick a DIFFERENT "type" than "MOST RECENT" above`}
 - At most ONE exercise may overlap with "MOST RECENT"; ideally zero
 - Vary exercise selection, order, rep ranges and tempo from all sessions listed
 - If the user trained a muscle group in the last 48h (see history), prioritise the opposite groups today` : ''}
 
-SESSION TYPE SELECTION — act like a professional trainer programming a weekly split:
+SESSION TYPE SELECTION:
+${forcedType
+  ? `- The user explicitly requested "${forcedType}" for today — use this type exactly, do not substitute another type even if recovery/history would normally suggest otherwise. Still act like a professional trainer: pick the best exercises, volume and load for this type given today's recovery and intensity.`
+  : `Act like a professional trainer programming a weekly split.
 Available types: "Upper Push", "Upper Pull", "Lower Body", "Full Body", "Core & Mobility"
 - Rotate intelligently: if legs were trained recently, do upper or core today; alternate push/pull
 - light intensity → prefer "Core & Mobility" or light "Lower Body"
 - moderate intensity → "Upper Push", "Upper Pull", or "Lower Body"
 - full intensity → any type, favour what hasn't been done recently
-- Only default to "Full Body" when there is no recent history AND nothing to avoid
+- Only default to "Full Body" when there is no recent history AND nothing to avoid`}
 
 VOLUME:
 - Exercise count is driven by TIME AVAILABLE above (${exerciseRange} exercises) — this takes priority
