@@ -78,7 +78,7 @@ Return JSON with this exact shape (all string values max 12 words):
 // ── Local proxy for Netlify generate-workout function ─────────
 app.post('/.netlify/functions/generate-workout', async (req, res) => {
   try {
-    const { recovery, sleep, cycle, history, avoid } = req.body || {};
+    const { recovery, sleep, cycle, history, avoid, timeMinutes, intensityOverride } = req.body || {};
     const recoveryScore = recovery?.score?.recovery_score != null
       ? Math.round(recovery.score.recovery_score) : null;
     const hrv = recovery?.score?.hrv_rmssd_milli != null
@@ -89,10 +89,18 @@ app.post('/.netlify/functions/generate-workout', async (req, res) => {
       ? Math.round(sleep.score.sleep_performance_percentage) : null;
     const strain = cycle?.score?.strain != null
       ? cycle.score.strain.toFixed(1) : null;
-    const intensity = recoveryScore === null ? 'moderate'
+    const autoIntensity = recoveryScore === null ? 'moderate'
       : recoveryScore >= 67 ? 'full'
       : recoveryScore >= 34 ? 'moderate'
       : 'light';
+    const intensity = ['light', 'moderate', 'full'].includes(intensityOverride)
+      ? intensityOverride
+      : autoIntensity;
+    const minutes = [15, 30, 45, 60].includes(timeMinutes) ? timeMinutes : 30;
+    const exerciseRange = minutes <= 15 ? '2-3'
+      : minutes <= 30 ? '3-4'
+      : minutes <= 45 ? '5-6'
+      : '6-8';
     const historyStr = Array.isArray(history) && history.length
       ? history.slice(0, 7).map(h => `${h.date}: ${h.name || h.id}${h.muscles?.length ? ` — muscles: ${h.muscles.join(', ')}` : ''}`).join('\n')
       : 'No recent history';
@@ -111,10 +119,15 @@ USER PROFILE:
 
 TODAY'S WHOOP DATA:
 ${recoveryScore !== null
-  ? `- Recovery: ${recoveryScore}% → ${intensity} intensity session\n- HRV: ${hrv}ms\n- RHR: ${rhr}bpm`
-  : '- Recovery data unavailable → moderate intensity'}
+  ? `- Recovery: ${recoveryScore}%\n- HRV: ${hrv}ms\n- RHR: ${rhr}bpm`
+  : '- Recovery data unavailable'}
 ${sleepPct !== null ? `- Sleep performance: ${sleepPct}% (if below 70%, favour lower volume and more rest even at higher recovery)` : ''}
 ${strain !== null ? `- Today's strain so far: ${strain}/21 (if already above 10, the user has exerted a lot today — keep this session lighter)` : ''}
+
+USER'S REQUEST FOR TODAY:
+- Time available: ${minutes} minutes → aim for ${exerciseRange} exercises total (including warm-up if any)
+- Intensity: ${intensityOverride ? `${intensity} — the user explicitly chose this, override the Whoop-based recommendation` : `${intensity} (auto-selected from recovery — Whoop recovery was ${recoveryScore ?? 'unavailable'}%)`}
+- Rest between sets MUST stay 90-120s minimum regardless of time pressure (MG safety) — cut exercise count, not rest time, to fit the time budget
 
 RECENT WORKOUT HISTORY (completed sessions, last 7):
 ${historyStr}
@@ -136,10 +149,12 @@ Available types: "Upper Push", "Upper Pull", "Lower Body", "Full Body", "Core & 
 - full intensity → any type, favour what hasn't been done recently
 - Only default to "Full Body" when there is no recent history AND nothing to avoid
 
-VOLUME BY INTENSITY:
-- light = 3-4 exercises, bodyweight or very light loads
-- moderate = 5-6 exercises, standard compound + accessory mix
-- full = 6-7 exercises, compound-first, heavier loads
+VOLUME:
+- Exercise count is driven by TIME AVAILABLE above (${exerciseRange} exercises) — this takes priority
+- Within that count, intensity shapes load and exercise choice:
+  light = bodyweight or very light loads, mobility-friendly
+  moderate = standard compound + accessory mix
+  full = compound-first, heavier loads
 
 RULES:
 - All exercises: dumbbells or bodyweight only

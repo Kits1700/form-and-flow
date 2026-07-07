@@ -253,6 +253,15 @@ body { font-family: 'Mulish', sans-serif; color: var(--text); -webkit-font-smoot
 
 /* ── Generate section ── */
 .generate-section { padding: 1rem 1.25rem; }
+
+.gen-prefs { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+.gen-pref-group { display: flex; flex-direction: column; gap: 6px; }
+.gen-pref-label { font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.gen-pref-options { display: flex; gap: 6px; }
+.gen-pref-btn { flex: 1; padding: 9px 4px; background: none; border: 1px solid var(--border2); border-radius: 9px; color: var(--muted); font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.gen-pref-btn:hover { border-color: var(--faint); }
+.gen-pref-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
 .generate-btn { width: 100%; padding: 18px; background: #fff; color: #000; border: none; border-radius: 14px; font-family: inherit; font-size: 1rem; font-weight: 800; cursor: pointer; letter-spacing: -0.01em; transition: opacity 0.15s; }
 .generate-btn:hover { opacity: 0.85; }
 .generate-loading { display: flex; align-items: center; gap: 12px; padding: 18px; background: var(--surface); border-radius: 14px; color: var(--muted); font-size: 0.9rem; }

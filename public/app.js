@@ -574,12 +574,36 @@ function renderTrackScore() {
     <div class="ts-desc">${label}</div>`;
 }
 
+// ── Generation preferences (time / intensity) ─────────────────
+function getPrefs() {
+  return JSON.parse(localStorage.getItem('ff_gen_prefs') || '{"time":"30","intensity":"auto"}');
+}
+
+function setPref(kind, val) {
+  const prefs = getPrefs();
+  prefs[kind] = val;
+  localStorage.setItem('ff_gen_prefs', JSON.stringify(prefs));
+  document.querySelectorAll(`#${kind}-options .gen-pref-btn`).forEach(b => {
+    b.classList.toggle('active', b.dataset.val === val);
+  });
+}
+
+function loadPrefs() {
+  const prefs = getPrefs();
+  ['time', 'intensity'].forEach(kind => {
+    document.querySelectorAll(`#${kind}-options .gen-pref-btn`).forEach(b => {
+      b.classList.toggle('active', b.dataset.val === prefs[kind]);
+    });
+  });
+}
+
 // ── AI Workout Generation ─────────────────────────────────────
 async function generateWorkout() {
   document.getElementById('generate-btn').style.display     = 'none';
   document.getElementById('generate-loading').style.display = 'flex';
 
   try {
+    const prefs   = getPrefs();
     const log     = JSON.parse(localStorage.getItem('ff_log') || '{}');
     const history = Object.entries(log)
       .sort((a, b) => b[0].localeCompare(a[0]))
@@ -609,6 +633,8 @@ async function generateWorkout() {
         cycle:    _whoopData?.cycle    ?? null,
         history,
         avoid,
+        timeMinutes: parseInt(prefs.time, 10),
+        intensityOverride: prefs.intensity === 'auto' ? null : prefs.intensity,
       }),
     });
 
@@ -633,6 +659,7 @@ async function generateWorkout() {
 function showTodayWorkout(workout) {
   document.getElementById('generate-btn').style.display     = 'none';
   document.getElementById('generate-loading').style.display = 'none';
+  document.getElementById('gen-prefs').style.display         = 'none';
 
   const intLabel = workout.intensity === 'full' ? 'Full intensity'
                  : workout.intensity === 'light' ? 'Light session' : 'Moderate';
@@ -670,6 +697,7 @@ function regenWorkout() {
   localStorage.removeItem('ff_today_workout');
   document.getElementById('today-workout-card').style.display = 'none';
   document.getElementById('generate-btn').style.display       = 'none';
+  document.getElementById('gen-prefs').style.display           = 'flex';
   generateWorkout();
 }
 
@@ -746,4 +774,5 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (localStorage.getItem('whoop_access_token')) whoopLoad();
   loadSteps();
+  loadPrefs();
 });

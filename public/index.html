@@ -37,6 +37,28 @@
   <!-- Generate / Today's workout -->
   <div class="generate-section">
     <div id="today-workout-card" style="display:none"></div>
+
+    <div class="gen-prefs" id="gen-prefs">
+      <div class="gen-pref-group">
+        <span class="gen-pref-label">Time available</span>
+        <div class="gen-pref-options" id="time-options">
+          <button class="gen-pref-btn" data-val="15" onclick="setPref('time','15')">15 min</button>
+          <button class="gen-pref-btn active" data-val="30" onclick="setPref('time','30')">30 min</button>
+          <button class="gen-pref-btn" data-val="45" onclick="setPref('time','45')">45 min</button>
+          <button class="gen-pref-btn" data-val="60" onclick="setPref('time','60')">60 min</button>
+        </div>
+      </div>
+      <div class="gen-pref-group">
+        <span class="gen-pref-label">Intensity</span>
+        <div class="gen-pref-options" id="intensity-options">
+          <button class="gen-pref-btn active" data-val="auto" onclick="setPref('intensity','auto')">Auto</button>
+          <button class="gen-pref-btn" data-val="light" onclick="setPref('intensity','light')">Light</button>
+          <button class="gen-pref-btn" data-val="moderate" onclick="setPref('intensity','moderate')">Moderate</button>
+          <button class="gen-pref-btn" data-val="full" onclick="setPref('intensity','full')">Full</button>
+        </div>
+      </div>
+    </div>
+
     <button id="generate-btn" class="generate-btn" onclick="generateWorkout()">Generate Today's Workout</button>
     <div id="generate-loading" class="generate-loading" style="display:none">
       <div class="generate-spinner"></div>
