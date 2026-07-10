@@ -78,7 +78,11 @@ Return JSON with this exact shape (all string values max 12 words):
 // ── Local proxy for Netlify generate-workout function ─────────
 app.post('/.netlify/functions/generate-workout', async (req, res) => {
   try {
-    const { recovery, sleep, cycle, history, avoid, timeMinutes, intensityOverride, typeOverride } = req.body || {};
+    const { recovery, sleep, cycle, history, avoid, timeMinutes, intensityOverride, typeOverride, totalSessions } = req.body || {};
+    const sessionsCompleted = Number.isFinite(totalSessions) ? totalSessions : 0;
+    const experienceStage = sessionsCompleted < 8 ? 'new'
+      : sessionsCompleted < 20 ? 'building'
+      : 'established';
     const VALID_TYPES = ['Upper Push', 'Upper Pull', 'Lower Body', 'Full Body', 'Core & Mobility'];
     const forcedType = VALID_TYPES.includes(typeOverride) ? typeOverride : null;
     const recoveryScore = recovery?.score?.recovery_score != null
@@ -161,6 +165,17 @@ VOLUME:
   light = bodyweight or very light loads, mobility-friendly
   moderate = standard compound + accessory mix
   full = compound-first, heavier loads
+
+EXERCISE SELECTION PHILOSOPHY — you are a professional trainer, not a gimmick generator:
+- Training experience: ${sessionsCompleted} sessions completed with this app → stage "${experienceStage}"
+- Use STRONG, SIMPLE, EFFECTIVE staple movements — the fundamentals that work, every time
+- Every exercise MUST map cleanly to one of these proven patterns: goblet/split squat, Romanian deadlift/hinge, standing or seated overhead press, floor/bench press, bent-over or single-arm row, bicep curl, lateral raise, tricep kickback, forward/reverse lunge, step-up, glute bridge, plank, dead bug
+- DO NOT use complex, gimmicky, or multi-plane combo movements: no windmills, renegade rows, Turkish get-ups, carries, halos, push-up-to-rotation, squat-to-press combos, or anything requiring advanced coordination/balance beyond a simple stance
+- Progress gradually like a real coaching relationship:
+  "new" (< 8 sessions) → only the most basic, stable versions of each pattern (e.g., goblet squat not split squat, seated press not standing single-arm press, bilateral not unilateral)
+  "building" (8-20 sessions) → introduce mild variation and light unilateral work (reverse lunge, single-arm row) once the basics are consistent
+  "established" (20+ sessions) → can layer in slightly more challenging tempo/unilateral work, still never gimmicky, form and control always come first
+- When in doubt, pick the simpler, more foundational exercise — reliability and correct form beat novelty
 
 RULES:
 - All exercises: dumbbells or bodyweight only

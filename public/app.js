@@ -581,35 +581,36 @@ function renderTrackScore() {
 }
 
 // ── Generation preferences (time / intensity / split) ──────────
-function getPrefs() {
-  return JSON.parse(localStorage.getItem('ff_gen_prefs') || '{"time":"30","intensity":"auto","split":"auto"}');
-}
+// These are session-scoped only — never persisted — so the first
+// "Generate" of the day always uses fresh auto/intelligent picks,
+// never a stale manual combination from a previous regenerate.
+const AUTO_PREFS = { time: '30', intensity: 'auto', split: 'auto' };
 
 function setPref(kind, val) {
-  const prefs = getPrefs();
-  prefs[kind] = val;
-  localStorage.setItem('ff_gen_prefs', JSON.stringify(prefs));
   document.querySelectorAll(`#${kind}-options .gen-pref-btn`).forEach(b => {
     b.classList.toggle('active', b.dataset.val === val);
   });
 }
 
-function loadPrefs() {
-  const prefs = getPrefs();
-  ['time', 'intensity', 'split'].forEach(kind => {
-    document.querySelectorAll(`#${kind}-options .gen-pref-btn`).forEach(b => {
-      b.classList.toggle('active', b.dataset.val === prefs[kind]);
-    });
-  });
+function resetPrefPanel() {
+  ['time', 'intensity', 'split'].forEach(kind => setPref(kind, AUTO_PREFS[kind]));
+}
+
+function getPanelPrefs() {
+  const active = kind => document.querySelector(`#${kind}-options .gen-pref-btn.active`)?.dataset.val;
+  return {
+    time:      active('time')      || AUTO_PREFS.time,
+    intensity: active('intensity') || AUTO_PREFS.intensity,
+    split:     active('split')     || AUTO_PREFS.split,
+  };
 }
 
 // ── AI Workout Generation ─────────────────────────────────────
-async function generateWorkout() {
+async function generateWorkout(prefs = AUTO_PREFS) {
   document.getElementById('generate-btn').style.display     = 'none';
   document.getElementById('generate-loading').style.display = 'flex';
 
   try {
-    const prefs   = getPrefs();
     const log     = JSON.parse(localStorage.getItem('ff_log') || '{}');
     const history = Object.entries(log)
       .sort((a, b) => b[0].localeCompare(a[0]))
@@ -642,6 +643,7 @@ async function generateWorkout() {
         timeMinutes: parseInt(prefs.time, 10),
         intensityOverride: prefs.intensity === 'auto' ? null : prefs.intensity,
         typeOverride: prefs.split === 'auto' ? null : prefs.split,
+        totalSessions: Object.keys(log).length,
       }),
     });
 
@@ -700,8 +702,9 @@ function startAIWorkout() {
 }
 
 function regenWorkout() {
-  // Show the options panel so the user can adjust time/intensity/split
-  // before regenerating. Actual generation waits for confirmRegenerate().
+  // Show the options panel, freshly reset to Auto, so the user can pick
+  // their own combination. Actual generation waits for confirmRegenerate().
+  resetPrefPanel();
   document.getElementById('today-workout-card').style.display = 'none';
   document.getElementById('generate-btn').style.display       = 'none';
   document.getElementById('gen-prefs').style.display           = 'flex';
@@ -711,7 +714,7 @@ function confirmRegenerate() {
   // Keep window._todayWorkout intact so generateWorkout can avoid repeating it.
   localStorage.removeItem('ff_today_workout');
   document.getElementById('gen-prefs').style.display = 'none';
-  generateWorkout();
+  generateWorkout(getPanelPrefs());
 }
 
 // ── Boot ──────────────────────────────────────────────────────
@@ -745,5 +748,4 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (storedWorkout?.date === today()) showTodayWorkout(storedWorkout.workout);
 
   if (localStorage.getItem('whoop_access_token')) whoopLoad();
-  loadPrefs();
 });
